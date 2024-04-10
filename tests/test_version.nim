@@ -1,0 +1,3 @@
+import vs
+
+echo version
