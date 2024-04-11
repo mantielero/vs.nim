@@ -31,6 +31,11 @@ import ../lib/[libapi,libcore,libvsplugins]
 #include "../wrapper/vsmap4.nim"
 #include "../wrapper/vsplugins4.nim"
 
+let rename = @[
+  # plugin                            original  new
+  ("com.vapoursynth.bestaudiosource", "Source", "asource")
+]
+
 let KEYWORDS = @["addr", "and", "as", "asm", "bind", "block", "break", "case", "cast",
 "concept", "const", "continue", "converter", "defer", "discard",
 "distinct", "div", "do", "elif", "else", "end", "enum", "except", "export",
@@ -219,11 +224,14 @@ proc addFirstArgument(function:VSPluginFunctionObj):string =
 
 
 
-proc genSignature(function:VSPluginFunctionObj):string =
+proc genSignature(function:VSPluginFunctionObj; pluginId:string):string =
   ## creates a plugin's function signature 
   
   # function name
   var fname = function.name
+  for item in rename:
+    if item[0] == pluginId and item[1] == fname:
+      fname = item[2]
   fname[0] = fname[0].toLowerAscii()
   result = &"proc {fname}*("
   var nSpaces = result.len
@@ -263,7 +271,8 @@ proc genFunction(plugin:VSPluginObj, function:VSPluginFunctionObj):string =
   ## creates a helper for a plugin's function        
 
   # Get the arguments
-  let func_signature = genSignature(function)
+  #echo plugin.id
+  let func_signature = genSignature(function, plugin.id)
 
   let body_first_argument = genBodyForFirstArgument(function)
   let add_first_argument = addFirstArgument(function)

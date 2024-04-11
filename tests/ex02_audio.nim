@@ -15,7 +15,7 @@ import vs, options
 
 
 
-var audio = bas.source("audio_24bits_signed_PCM.wav", track = -1.some)
+var audio = asource("audio_24bits_signed_PCM.wav", track = -1.some)
 echo audio  # VSMapObj
 
 var node = audio.propGetNode("clip", 0)  # VSNodeObj
