@@ -60,21 +60,21 @@ proc convertType(`type`:string):string =
            of "vnode[]":
              "seq[VSNodeObj]"                          
            of "anode":
-             "VSAudioNodeObj"   
+             "VSNodeObj"   
            of "anode[]":
-             "seq[VSAudioNodeObj]"  
+             "seq[VSNodeObj]"  
            of "clip":
              "VSNodeObj"
            of "clip[]":
              "seq[VSNodeObj]"
            of "frame":
-             "VSFrameRefObj"             
+             "VSFrameObj"             
            of "frame[]":
-             "seq[VSFrameRefObj]"               
+             "seq[VSFrameObj]"               
            of "func":
-             "VSFuncRefObj"             
+             "VSFunctionObj"             
            of "func[]":
-             "seq[VSFuncRefObj]"             
+             "seq[VSFunctionObj]"             
            else:
              `type`
 
@@ -82,18 +82,24 @@ proc convertType(`type`:string):string =
 proc genBodyForFirstArgument(function:VSPluginFunctionObj):string =
   # For the cases where the first argument is clip, we transform it
   # into a VSMap, to allow chaining calls
+
+  # When there are no arguments, we simply return
   if function.args().len == 0:
     return ""  
 
-  # Get first argument
+  # Get the first argument
   result = ""
   let arg = function.args[0]
   var argName = arg.name
 
+  # If it is name after one of Nim's key words, we wrap it in ``
   if argName in KEYWORDS: 
     argName = &"`{argName}`"
-  let newtype = convertType( arg.typ )
 
+  # Get a friendlier name for type
+  let newtype = convertType( arg.typ )
+  # if argName == "clip":
+  #   echo "clip--->",arg.typ
   
   if arg.typ in ["vnode", "vnode[]", "anode", "anode[]"]: # ["clip", "clip[]"]:
     #firstArg &= "\n  let tmpSeq = vsmap.toSeq    # Convert the VSMap into a sequence\n"
@@ -106,25 +112,33 @@ proc genBodyForFirstArgument(function:VSPluginFunctionObj):string =
         vsmap = "vsmap.get"
     
     result &= &"  {ident}assert( {vsmap}.len != 0, \"the vsmap should contain at least one item\")\n"                 
-    echo result
+    #echo result
 
 
     # Just one clip
-    var clip = "vnode" # "clip"
+
     if newtype == "VSNodeObj":
+      var clip = "clip" #"" #"vnode" # "clip"      
+      # if arg.typ == "vnode":
+      #   clip = "vnode"
+      # elif arg.typ == "anode":
+      #   clip = "anode"
+      # else:
+      #   echo "Checkear línea 122: ", arg.typ
+      
       result &= &"  {ident}assert( {vsmap}.len(\"{clip}\") == 1, \"the vsmap should contain one node\")\n"
       if not arg.optional:  # Mandatory
         result &= &"  var {argName} = getFirstNode(vsmap)\n\n" 
       else:
         #result &= &"  if {argName}.isSome: args.{funcName}(\"{arg.name}\", {argName}.get)\n"
-        result &= &"  var {argName}:VSNodeObj\n"
+        result &= &"  var {argName}:Option[VSNodeObj]\n"
         result &= "  if vsmap.isSome:\n"
-        result &= &"    {argName} = getFirstNode(vsmap.get)\n\n"
+        result &= &"    {argName} = getFirstNode(vsmap.get).some\n\n"
     
     # For a sequence of clips in the first argument
     # TODO: to extract all nodes in the list and add it to the new map
     elif newtype == "seq[VSNodeObj]":
-      clip = "clips"           
+      var clip = "clips"           
       result &= &"  {ident}assert( {vsmap}.len(\"{clip}\") >= 1, \"the vsmap should contain a seq with nodes\")\n"
 
       if not arg.optional:
@@ -177,7 +191,8 @@ proc genBodyForOtherArguments(function:VSPluginFunctionObj; ini=1):string =
 proc addFirstArgument(function:VSPluginFunctionObj):string =
   if function.args.len == 0:
     return ""
-  if not (function.args[0].typ in ["clip", "clip[]"]):
+  #echo function.args[0].typ
+  if not (function.args[0].typ in ["clip", "clip[]","vnode", "vnode[]","anode","anode[]"]):
     return ""
   let arg = function.args[0]
   var argName = arg.name
@@ -190,8 +205,11 @@ proc addFirstArgument(function:VSPluginFunctionObj):string =
     result = "  if vsmap.isSome:\n"
     ident = "  "
 
-  if function.args[0].typ == "clip":
-    result &= &"  {ident}args.append(\"{arg.name}\", {argName})"
+  if function.args[0].typ in ["clip", "vnode", "anode"]:
+    if arg.optional:
+      result &= &"  {ident}args.append(\"{arg.name}\", {argName}.get)"
+    else:
+      result &= &"  {ident}args.append(\"{arg.name}\", {argName})"
   else:
     result &= &"  {ident}for item in {argName}:\n"
     result &= &"    {ident}args.append(\"{arg.name}\", item)\n"
@@ -239,19 +257,10 @@ proc genSignature(function:VSPluginFunctionObj):string =
 
   result &= "):VSMapObj =\n"
 
-#[
-(name: "clip", typ: "anode", optional: true)
-(name: "channels", typ: "int[]", optional: true)
-(name: "bits", typ: "int", optional: true)
-(name: "sampletype", typ: "int", optional: true)
-(name: "samplerate", typ: "int", optional: true)
-(name: "length", typ: "int", optional: true)
-(name: "keep", typ: "int", optional: true)
 
-]#
 
 proc genFunction(plugin:VSPluginObj, function:VSPluginFunctionObj):string =     
-  ## Creates a function from a plugin.       
+  ## creates a helper for a plugin's function        
 
   # Get the arguments
   let func_signature = genSignature(function)
@@ -274,22 +283,6 @@ proc genFunction(plugin:VSPluginObj, function:VSPluginFunctionObj):string =
   result.handle = api.handle.invoke(plug.handle, "{function.name}".cstring, args.handle)
   #API.freeMap(args)
 """
-  
-
-# proc main2 =
-#   os.createDir("../plugins4")
-  
-#   var includes = "import options\n\n"
-  
-#   for plugin in plugins():
-#     var source = ""
-#     for function in functions( plugin ):
-#     #echo plugin.name, " ", plugin.id, " ", plugin.nameSpace, " ", plugin.path, " ", plugin.version
-#       var source = genFunction(plugin, function)
-#       echo "  Function: ", function.name
-#       echo "    Arguments: ", function.args
-#       echo "    Ret: ", function.ret
-#       echo source
 
 
 proc main =

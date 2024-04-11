@@ -8,13 +8,12 @@ proc clipInfo*(vsmap:VSMapObj;
   let plug = getPluginById("com.vapoursynth.text")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.text\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
-  assert( vsmap.len("vnode") == 1, "the vsmap should contain one node")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
   var clip = getFirstNode(vsmap)
 
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
   args.append("clip", clip)
   if alignment.isSome: args.append("alignment", alignment.get)
   if scale.isSome: args.append("scale", scale.get)
@@ -22,7 +21,7 @@ proc clipInfo*(vsmap:VSMapObj;
   result.handle = api.handle.invoke(plug.handle, "ClipInfo".cstring, args.handle)
   #API.freeMap(args)
 
-#[
+
 proc coreInfo*(vsmap= none(VSMapObj);
                alignment= none(int);
                scale= none(int)):VSMapObj =
@@ -31,22 +30,22 @@ proc coreInfo*(vsmap= none(VSMapObj);
   assert( plug.handle != nil, "plugin \"com.vapoursynth.text\" not installed properly in your computer") 
   if vsmap.isSome:
     assert( vsmap.get.len != 0, "the vsmap should contain at least one item")
-    assert( vsmap.get.len("vnode") == 1, "the vsmap should contain one node")
-  var clip:VSNodeObj
+    assert( vsmap.get.len("clip") == 1, "the vsmap should contain one node")
+  var clip:Option[VSNodeObj]
   if vsmap.isSome:
-    clip = getFirstNode(vsmap.get)
+    clip = getFirstNode(vsmap.get).some
 
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
-  if clip.isSome: args.append("clip", clip.get)
+  if vsmap.isSome:
+    args.append("clip", clip.get)
   if alignment.isSome: args.append("alignment", alignment.get)
   if scale.isSome: args.append("scale", scale.get)
 
   result.handle = api.handle.invoke(plug.handle, "CoreInfo".cstring, args.handle)
   #API.freeMap(args)
-]#
+
 
 proc frameNum*(vsmap:VSMapObj;
                alignment= none(int);
@@ -55,13 +54,12 @@ proc frameNum*(vsmap:VSMapObj;
   let plug = getPluginById("com.vapoursynth.text")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.text\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
-  assert( vsmap.len("vnode") == 1, "the vsmap should contain one node")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
   var clip = getFirstNode(vsmap)
 
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
   args.append("clip", clip)
   if alignment.isSome: args.append("alignment", alignment.get)
   if scale.isSome: args.append("scale", scale.get)
@@ -78,13 +76,12 @@ proc frameProps*(vsmap:VSMapObj;
   let plug = getPluginById("com.vapoursynth.text")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.text\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
-  assert( vsmap.len("vnode") == 1, "the vsmap should contain one node")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
   var clip = getFirstNode(vsmap)
 
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
   args.append("clip", clip)
   if props.isSome:
     for item in props.get:
@@ -104,13 +101,12 @@ proc text*(vsmap:VSMapObj;
   let plug = getPluginById("com.vapoursynth.text")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.text\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
-  assert( vsmap.len("vnode") == 1, "the vsmap should contain one node")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
   var clip = getFirstNode(vsmap)
 
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
   args.append("clip", clip)
   args.append("text", text)
   if alignment.isSome: args.append("alignment", alignment.get)

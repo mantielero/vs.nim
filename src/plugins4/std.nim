@@ -11,13 +11,12 @@ proc addBorders*(vsmap:VSMapObj;
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
-  assert( vsmap.len("vnode") == 1, "the vsmap should contain one node")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
   var clip = getFirstNode(vsmap)
 
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
   args.append("clip", clip)
   if left.isSome: args.append("left", left.get)
   if right.isSome: args.append("right", right.get)
@@ -39,13 +38,12 @@ proc assumeFPS*(vsmap:VSMapObj;
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
-  assert( vsmap.len("vnode") == 1, "the vsmap should contain one node")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
   var clip = getFirstNode(vsmap)
 
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
   args.append("clip", clip)
   if src.isSome: args.append("src", src.get)
   if fpsnum.isSome: args.append("fpsnum", fpsnum.get)
@@ -54,18 +52,20 @@ proc assumeFPS*(vsmap:VSMapObj;
   result.handle = api.handle.invoke(plug.handle, "AssumeFPS".cstring, args.handle)
   #API.freeMap(args)
 
-#[
+
 proc assumeSampleRate*(vsmap:VSMapObj;
-                       src= none(VSAudioNodeObj);
+                       src= none(VSNodeObj);
                        samplerate= none(int)):VSMapObj =
 
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
+  var clip = getFirstNode(vsmap)
+
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
   args.append("clip", clip)
   if src.isSome: args.append("src", src.get)
   if samplerate.isSome: args.append("samplerate", samplerate.get)
@@ -81,10 +81,12 @@ proc audioGain*(vsmap:VSMapObj;
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
+  var clip = getFirstNode(vsmap)
+
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
   args.append("clip", clip)
   if gain.isSome:
     for item in gain.get:
@@ -101,10 +103,12 @@ proc audioLoop*(vsmap:VSMapObj;
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
+  var clip = getFirstNode(vsmap)
+
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
   args.append("clip", clip)
   if times.isSome: args.append("times", times.get)
 
@@ -120,12 +124,15 @@ proc audioMix*(vsmap:VSMapObj;
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
+  assert( vsmap.len("clips") >= 1, "the vsmap should contain a seq with nodes")
+  var clips = getFirstNodes(vsmap)
+
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
   for item in clips:
     args.append("clips", item)
+
   for item in matrix:
     args.append("matrix", item)
   for item in channels_out:
@@ -141,10 +148,13 @@ proc audioReverse*(vsmap:VSMapObj):VSMapObj =
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
+  var clip = getFirstNode(vsmap)
+
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
+  args.append("clip", clip)
 
   result.handle = api.handle.invoke(plug.handle, "AudioReverse".cstring, args.handle)
   #API.freeMap(args)
@@ -155,9 +165,14 @@ proc audioSplice*(vsmap:VSMapObj):VSMapObj =
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
+  assert( vsmap.len("clips") >= 1, "the vsmap should contain a seq with nodes")
+  var clips = getFirstNodes(vsmap)
+
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
+  for item in clips:
+    args.append("clips", item)
 
 
   result.handle = api.handle.invoke(plug.handle, "AudioSplice".cstring, args.handle)
@@ -172,10 +187,12 @@ proc audioTrim*(vsmap:VSMapObj;
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
+  var clip = getFirstNode(vsmap)
+
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
   args.append("clip", clip)
   if first.isSome: args.append("first", first.get)
   if last.isSome: args.append("last", last.get)
@@ -184,7 +201,7 @@ proc audioTrim*(vsmap:VSMapObj;
   result.handle = api.handle.invoke(plug.handle, "AudioTrim".cstring, args.handle)
   #API.freeMap(args)
 
-]#
+
 proc averageFrames*(vsmap:VSMapObj;
                     weights:seq[float];
                     scale= none(float);
@@ -200,9 +217,9 @@ proc averageFrames*(vsmap:VSMapObj;
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
   for item in clips:
     args.append("clips", item)
+
   for item in weights:
     args.append("weights", item)
   if scale.isSome: args.append("scale", scale.get)
@@ -224,13 +241,12 @@ proc binarize*(vsmap:VSMapObj;
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
-  assert( vsmap.len("vnode") == 1, "the vsmap should contain one node")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
   var clip = getFirstNode(vsmap)
 
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
   args.append("clip", clip)
   if threshold.isSome:
     for item in threshold.get:
@@ -258,13 +274,12 @@ proc binarizeMask*(vsmap:VSMapObj;
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
-  assert( vsmap.len("vnode") == 1, "the vsmap should contain one node")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
   var clip = getFirstNode(vsmap)
 
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
   args.append("clip", clip)
   if threshold.isSome:
     for item in threshold.get:
@@ -282,7 +297,7 @@ proc binarizeMask*(vsmap:VSMapObj;
   result.handle = api.handle.invoke(plug.handle, "BinarizeMask".cstring, args.handle)
   #API.freeMap(args)
 
-#[
+
 proc blankAudio*(vsmap= none(VSMapObj);
                  channels= none(seq[int]);
                  bits= none(int);
@@ -295,11 +310,16 @@ proc blankAudio*(vsmap= none(VSMapObj);
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   if vsmap.isSome:
     assert( vsmap.get.len != 0, "the vsmap should contain at least one item")
+    assert( vsmap.get.len("clip") == 1, "the vsmap should contain one node")
+  var clip:Option[VSNodeObj]
+  if vsmap.isSome:
+    clip = getFirstNode(vsmap.get).some
+
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
-  if clip.isSome: args.append("clip", clip.get)
+  if vsmap.isSome:
+    args.append("clip", clip.get)
   if channels.isSome:
     for item in channels.get:
       args.append("channels", item)
@@ -329,16 +349,16 @@ proc blankClip*(vsmap= none(VSMapObj);
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   if vsmap.isSome:
     assert( vsmap.get.len != 0, "the vsmap should contain at least one item")
-    assert( vsmap.get.len("vnode") == 1, "the vsmap should contain one node")
-  var clip:VSNodeObj
+    assert( vsmap.get.len("clip") == 1, "the vsmap should contain one node")
+  var clip:Option[VSNodeObj]
   if vsmap.isSome:
-    clip = getFirstNode(vsmap.get)
+    clip = getFirstNode(vsmap.get).some
 
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
-  if clip.isSome: args.append("clip", clip.get)
+  if vsmap.isSome:
+    args.append("clip", clip.get)
   if width.isSome: args.append("width", width.get)
   if height.isSome: args.append("height", height.get)
   if format.isSome: args.append("format", format.get)
@@ -355,7 +375,7 @@ proc blankClip*(vsmap= none(VSMapObj);
   result.handle = api.handle.invoke(plug.handle, "BlankClip".cstring, args.handle)
   #API.freeMap(args)
 
-]#
+
 proc boxBlur*(vsmap:VSMapObj;
               planes= none(seq[int]);
               hradius= none(int);
@@ -366,13 +386,12 @@ proc boxBlur*(vsmap:VSMapObj;
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
-  assert( vsmap.len("vnode") == 1, "the vsmap should contain one node")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
   var clip = getFirstNode(vsmap)
 
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
   args.append("clip", clip)
   if planes.isSome:
     for item in planes.get:
@@ -394,13 +413,12 @@ proc cache*(vsmap:VSMapObj;
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
-  assert( vsmap.len("vnode") == 1, "the vsmap should contain one node")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
   var clip = getFirstNode(vsmap)
 
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
   args.append("clip", clip)
   if size.isSome: args.append("size", size.get)
   if fixed.isSome: args.append("fixed", fixed.get)
@@ -417,13 +435,12 @@ proc clipToProp*(vsmap:VSMapObj;
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
-  assert( vsmap.len("vnode") == 1, "the vsmap should contain one node")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
   var clip = getFirstNode(vsmap)
 
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
   args.append("clip", clip)
   args.append("mclip", mclip)
   if prop.isSome: args.append("prop", prop.get)
@@ -443,13 +460,12 @@ proc convolution*(vsmap:VSMapObj;
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
-  assert( vsmap.len("vnode") == 1, "the vsmap should contain one node")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
   var clip = getFirstNode(vsmap)
 
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
   args.append("clip", clip)
   for item in matrix:
     args.append("matrix", item)
@@ -472,13 +488,12 @@ proc copyFrameProps*(vsmap:VSMapObj;
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
-  assert( vsmap.len("vnode") == 1, "the vsmap should contain one node")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
   var clip = getFirstNode(vsmap)
 
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
   args.append("clip", clip)
   args.append("prop_src", prop_src)
   if props.isSome:
@@ -498,13 +513,12 @@ proc crop*(vsmap:VSMapObj;
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
-  assert( vsmap.len("vnode") == 1, "the vsmap should contain one node")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
   var clip = getFirstNode(vsmap)
 
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
   args.append("clip", clip)
   if left.isSome: args.append("left", left.get)
   if right.isSome: args.append("right", right.get)
@@ -526,13 +540,12 @@ proc cropAbs*(vsmap:VSMapObj;
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
-  assert( vsmap.len("vnode") == 1, "the vsmap should contain one node")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
   var clip = getFirstNode(vsmap)
 
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
   args.append("clip", clip)
   args.append("width", width)
   args.append("height", height)
@@ -554,13 +567,12 @@ proc cropRel*(vsmap:VSMapObj;
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
-  assert( vsmap.len("vnode") == 1, "the vsmap should contain one node")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
   var clip = getFirstNode(vsmap)
 
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
   args.append("clip", clip)
   if left.isSome: args.append("left", left.get)
   if right.isSome: args.append("right", right.get)
@@ -578,13 +590,12 @@ proc deflate*(vsmap:VSMapObj;
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
-  assert( vsmap.len("vnode") == 1, "the vsmap should contain one node")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
   var clip = getFirstNode(vsmap)
 
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
   args.append("clip", clip)
   if planes.isSome:
     for item in planes.get:
@@ -601,13 +612,12 @@ proc deleteFrames*(vsmap:VSMapObj;
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
-  assert( vsmap.len("vnode") == 1, "the vsmap should contain one node")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
   var clip = getFirstNode(vsmap)
 
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
   args.append("clip", clip)
   for item in frames:
     args.append("frames", item)
@@ -622,13 +632,12 @@ proc doubleWeave*(vsmap:VSMapObj;
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
-  assert( vsmap.len("vnode") == 1, "the vsmap should contain one node")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
   var clip = getFirstNode(vsmap)
 
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
   args.append("clip", clip)
   if tff.isSome: args.append("tff", tff.get)
 
@@ -642,13 +651,12 @@ proc duplicateFrames*(vsmap:VSMapObj;
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
-  assert( vsmap.len("vnode") == 1, "the vsmap should contain one node")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
   var clip = getFirstNode(vsmap)
 
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
   args.append("clip", clip)
   for item in frames:
     args.append("frames", item)
@@ -670,9 +678,9 @@ proc expr*(vsmap:VSMapObj;
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
   for item in clips:
     args.append("clips", item)
+
   for item in expr:
     args.append("expr", item)
   if format.isSome: args.append("format", format.get)
@@ -686,13 +694,13 @@ proc flipHorizontal*(vsmap:VSMapObj):VSMapObj =
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
-  assert( vsmap.len("vnode") == 1, "the vsmap should contain one node")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
   var clip = getFirstNode(vsmap)
 
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
+  args.append("clip", clip)
 
   result.handle = api.handle.invoke(plug.handle, "FlipHorizontal".cstring, args.handle)
   #API.freeMap(args)
@@ -703,33 +711,32 @@ proc flipVertical*(vsmap:VSMapObj):VSMapObj =
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
-  assert( vsmap.len("vnode") == 1, "the vsmap should contain one node")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
   var clip = getFirstNode(vsmap)
 
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
+  args.append("clip", clip)
 
   result.handle = api.handle.invoke(plug.handle, "FlipVertical".cstring, args.handle)
   #API.freeMap(args)
 
-#[
+
 proc frameEval*(vsmap:VSMapObj;
-                eval:VSFuncRefObj;
+                eval:VSFunctionObj;
                 prop_src= none(seq[VSNodeObj]);
                 clip_src= none(seq[VSNodeObj])):VSMapObj =
 
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
-  assert( vsmap.len("vnode") == 1, "the vsmap should contain one node")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
   var clip = getFirstNode(vsmap)
 
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
   args.append("clip", clip)
   args.append("eval", eval)
   if prop_src.isSome:
@@ -741,7 +748,7 @@ proc frameEval*(vsmap:VSMapObj;
 
   result.handle = api.handle.invoke(plug.handle, "FrameEval".cstring, args.handle)
   #API.freeMap(args)
-]#
+
 
 proc freezeFrames*(vsmap:VSMapObj;
                    first= none(seq[int]);
@@ -751,13 +758,12 @@ proc freezeFrames*(vsmap:VSMapObj;
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
-  assert( vsmap.len("vnode") == 1, "the vsmap should contain one node")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
   var clip = getFirstNode(vsmap)
 
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
   args.append("clip", clip)
   if first.isSome:
     for item in first.get:
@@ -780,13 +786,12 @@ proc inflate*(vsmap:VSMapObj;
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
-  assert( vsmap.len("vnode") == 1, "the vsmap should contain one node")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
   var clip = getFirstNode(vsmap)
 
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
   args.append("clip", clip)
   if planes.isSome:
     for item in planes.get:
@@ -811,9 +816,9 @@ proc interleave*(vsmap:VSMapObj;
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
   for item in clips:
     args.append("clips", item)
+
   if extend.isSome: args.append("extend", extend.get)
   if mismatch.isSome: args.append("mismatch", mismatch.get)
   if modify_duration.isSome: args.append("modify_duration", modify_duration.get)
@@ -828,13 +833,12 @@ proc invert*(vsmap:VSMapObj;
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
-  assert( vsmap.len("vnode") == 1, "the vsmap should contain one node")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
   var clip = getFirstNode(vsmap)
 
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
   args.append("clip", clip)
   if planes.isSome:
     for item in planes.get:
@@ -850,13 +854,12 @@ proc invertMask*(vsmap:VSMapObj;
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
-  assert( vsmap.len("vnode") == 1, "the vsmap should contain one node")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
   var clip = getFirstNode(vsmap)
 
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
   args.append("clip", clip)
   if planes.isSome:
     for item in planes.get:
@@ -877,13 +880,12 @@ proc levels*(vsmap:VSMapObj;
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
-  assert( vsmap.len("vnode") == 1, "the vsmap should contain one node")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
   var clip = getFirstNode(vsmap)
 
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
   args.append("clip", clip)
   if min_in.isSome:
     for item in min_in.get:
@@ -916,13 +918,12 @@ proc limiter*(vsmap:VSMapObj;
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
-  assert( vsmap.len("vnode") == 1, "the vsmap should contain one node")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
   var clip = getFirstNode(vsmap)
 
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
   args.append("clip", clip)
   if min.isSome:
     for item in min.get:
@@ -977,38 +978,36 @@ proc loop*(vsmap:VSMapObj;
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
-  assert( vsmap.len("vnode") == 1, "the vsmap should contain one node")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
   var clip = getFirstNode(vsmap)
 
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
   args.append("clip", clip)
   if times.isSome: args.append("times", times.get)
 
   result.handle = api.handle.invoke(plug.handle, "Loop".cstring, args.handle)
   #API.freeMap(args)
 
-#[
+
 proc lut*(vsmap:VSMapObj;
           planes= none(seq[int]);
           lut= none(seq[int]);
           lutf= none(seq[float]);
-          function= none(VSFuncRefObj);
+          function= none(VSFunctionObj);
           bits= none(int);
           floatout= none(int)):VSMapObj =
 
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
-  assert( vsmap.len("vnode") == 1, "the vsmap should contain one node")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
   var clip = getFirstNode(vsmap)
 
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
   args.append("clip", clip)
   if planes.isSome:
     for item in planes.get:
@@ -1025,27 +1024,26 @@ proc lut*(vsmap:VSMapObj;
 
   result.handle = api.handle.invoke(plug.handle, "Lut".cstring, args.handle)
   #API.freeMap(args)
-]#
-#[
+
+
 proc lut2*(vsmap:VSMapObj;
            clipb:VSNodeObj;
            planes= none(seq[int]);
            lut= none(seq[int]);
            lutf= none(seq[float]);
-           function= none(VSFuncRefObj);
+           function= none(VSFunctionObj);
            bits= none(int);
            floatout= none(int)):VSMapObj =
 
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
-  assert( vsmap.len("vnode") == 1, "the vsmap should contain one node")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
   var clipa = getFirstNode(vsmap)
 
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
   args.append("clipa", clipa)
   args.append("clipb", clipb)
   if planes.isSome:
@@ -1063,7 +1061,7 @@ proc lut2*(vsmap:VSMapObj;
 
   result.handle = api.handle.invoke(plug.handle, "Lut2".cstring, args.handle)
   #API.freeMap(args)
-]#
+
 
 proc makeDiff*(vsmap:VSMapObj;
                clipb:VSNodeObj;
@@ -1072,13 +1070,12 @@ proc makeDiff*(vsmap:VSMapObj;
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
-  assert( vsmap.len("vnode") == 1, "the vsmap should contain one node")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
   var clipa = getFirstNode(vsmap)
 
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
   args.append("clipa", clipa)
   args.append("clipb", clipb)
   if planes.isSome:
@@ -1095,13 +1092,12 @@ proc makeFullDiff*(vsmap:VSMapObj;
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
-  assert( vsmap.len("vnode") == 1, "the vsmap should contain one node")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
   var clipa = getFirstNode(vsmap)
 
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
   args.append("clipa", clipa)
   args.append("clipb", clipb)
 
@@ -1119,13 +1115,12 @@ proc maskedMerge*(vsmap:VSMapObj;
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
-  assert( vsmap.len("vnode") == 1, "the vsmap should contain one node")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
   var clipa = getFirstNode(vsmap)
 
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
   args.append("clipa", clipa)
   args.append("clipb", clipb)
   args.append("mask", mask)
@@ -1147,13 +1142,12 @@ proc maximum*(vsmap:VSMapObj;
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
-  assert( vsmap.len("vnode") == 1, "the vsmap should contain one node")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
   var clip = getFirstNode(vsmap)
 
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
   args.append("clip", clip)
   if planes.isSome:
     for item in planes.get:
@@ -1173,13 +1167,12 @@ proc median*(vsmap:VSMapObj;
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
-  assert( vsmap.len("vnode") == 1, "the vsmap should contain one node")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
   var clip = getFirstNode(vsmap)
 
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
   args.append("clip", clip)
   if planes.isSome:
     for item in planes.get:
@@ -1196,13 +1189,12 @@ proc merge*(vsmap:VSMapObj;
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
-  assert( vsmap.len("vnode") == 1, "the vsmap should contain one node")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
   var clipa = getFirstNode(vsmap)
 
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
   args.append("clipa", clipa)
   args.append("clipb", clipb)
   if weight.isSome:
@@ -1220,13 +1212,12 @@ proc mergeDiff*(vsmap:VSMapObj;
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
-  assert( vsmap.len("vnode") == 1, "the vsmap should contain one node")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
   var clipa = getFirstNode(vsmap)
 
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
   args.append("clipa", clipa)
   args.append("clipb", clipb)
   if planes.isSome:
@@ -1243,20 +1234,19 @@ proc mergeFullDiff*(vsmap:VSMapObj;
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
-  assert( vsmap.len("vnode") == 1, "the vsmap should contain one node")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
   var clipa = getFirstNode(vsmap)
 
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
   args.append("clipa", clipa)
   args.append("clipb", clipb)
 
   result.handle = api.handle.invoke(plug.handle, "MergeFullDiff".cstring, args.handle)
   #API.freeMap(args)
 
-#[
+
 proc minimum*(vsmap:VSMapObj;
               planes= none(seq[int]);
               threshold= none(float);
@@ -1265,13 +1255,12 @@ proc minimum*(vsmap:VSMapObj;
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
-  assert( vsmap.len("vnode") == 1, "the vsmap should contain one node")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
   var clip = getFirstNode(vsmap)
 
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
   args.append("clip", clip)
   if planes.isSome:
     for item in planes.get:
@@ -1287,18 +1276,17 @@ proc minimum*(vsmap:VSMapObj;
 
 proc modifyFrame*(vsmap:VSMapObj;
                   clips:seq[VSNodeObj];
-                  selector:VSFuncRefObj):VSMapObj =
+                  selector:VSFunctionObj):VSMapObj =
 
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
-  assert( vsmap.len("vnode") == 1, "the vsmap should contain one node")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
   var clip = getFirstNode(vsmap)
 
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
   args.append("clip", clip)
   for item in clips:
     args.append("clips", item)
@@ -1307,7 +1295,7 @@ proc modifyFrame*(vsmap:VSMapObj;
   result.handle = api.handle.invoke(plug.handle, "ModifyFrame".cstring, args.handle)
   #API.freeMap(args)
 
-]#
+
 proc pEMVerifier*(vsmap:VSMapObj;
                   upper= none(seq[float]);
                   lower= none(seq[float])):VSMapObj =
@@ -1315,13 +1303,12 @@ proc pEMVerifier*(vsmap:VSMapObj;
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
-  assert( vsmap.len("vnode") == 1, "the vsmap should contain one node")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
   var clip = getFirstNode(vsmap)
 
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
   args.append("clip", clip)
   if upper.isSome:
     for item in upper.get:
@@ -1342,13 +1329,12 @@ proc planeStats*(vsmap:VSMapObj;
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
-  assert( vsmap.len("vnode") == 1, "the vsmap should contain one node")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
   var clipa = getFirstNode(vsmap)
 
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
   args.append("clipa", clipa)
   if clipb.isSome: args.append("clipb", clipb.get)
   if plane.isSome: args.append("plane", plane.get)
@@ -1364,13 +1350,12 @@ proc preMultiply*(vsmap:VSMapObj;
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
-  assert( vsmap.len("vnode") == 1, "the vsmap should contain one node")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
   var clip = getFirstNode(vsmap)
 
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
   args.append("clip", clip)
   args.append("alpha", alpha)
 
@@ -1385,13 +1370,12 @@ proc prewitt*(vsmap:VSMapObj;
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
-  assert( vsmap.len("vnode") == 1, "the vsmap should contain one node")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
   var clip = getFirstNode(vsmap)
 
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
   args.append("clip", clip)
   if planes.isSome:
     for item in planes.get:
@@ -1408,13 +1392,12 @@ proc propToClip*(vsmap:VSMapObj;
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
-  assert( vsmap.len("vnode") == 1, "the vsmap should contain one node")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
   var clip = getFirstNode(vsmap)
 
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
   args.append("clip", clip)
   if prop.isSome: args.append("prop", prop.get)
 
@@ -1428,13 +1411,12 @@ proc removeFrameProps*(vsmap:VSMapObj;
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
-  assert( vsmap.len("vnode") == 1, "the vsmap should contain one node")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
   var clip = getFirstNode(vsmap)
 
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
   args.append("clip", clip)
   if props.isSome:
     for item in props.get:
@@ -1449,13 +1431,13 @@ proc reverse*(vsmap:VSMapObj):VSMapObj =
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
-  assert( vsmap.len("vnode") == 1, "the vsmap should contain one node")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
   var clip = getFirstNode(vsmap)
 
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
+  args.append("clip", clip)
 
   result.handle = api.handle.invoke(plug.handle, "Reverse".cstring, args.handle)
   #API.freeMap(args)
@@ -1469,13 +1451,12 @@ proc selectEvery*(vsmap:VSMapObj;
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
-  assert( vsmap.len("vnode") == 1, "the vsmap should contain one node")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
   var clip = getFirstNode(vsmap)
 
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
   args.append("clip", clip)
   args.append("cycle", cycle)
   for item in offsets:
@@ -1493,13 +1474,12 @@ proc separateFields*(vsmap:VSMapObj;
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
-  assert( vsmap.len("vnode") == 1, "the vsmap should contain one node")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
   var clip = getFirstNode(vsmap)
 
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
   args.append("clip", clip)
   if tff.isSome: args.append("tff", tff.get)
   if modify_duration.isSome: args.append("modify_duration", modify_duration.get)
@@ -1507,7 +1487,7 @@ proc separateFields*(vsmap:VSMapObj;
   result.handle = api.handle.invoke(plug.handle, "SeparateFields".cstring, args.handle)
   #API.freeMap(args)
 
-#[
+
 proc setAudioCache*(vsmap:VSMapObj;
                     mode= none(int);
                     fixedsize= none(int);
@@ -1517,10 +1497,12 @@ proc setAudioCache*(vsmap:VSMapObj;
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
+  var clip = getFirstNode(vsmap)
+
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
   args.append("clip", clip)
   if mode.isSome: args.append("mode", mode.get)
   if fixedsize.isSome: args.append("fixedsize", fixedsize.get)
@@ -1530,20 +1512,19 @@ proc setAudioCache*(vsmap:VSMapObj;
   result.handle = api.handle.invoke(plug.handle, "SetAudioCache".cstring, args.handle)
   #API.freeMap(args)
 
-]#
+
 proc setFieldBased*(vsmap:VSMapObj;
                     value:int):VSMapObj =
 
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
-  assert( vsmap.len("vnode") == 1, "the vsmap should contain one node")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
   var clip = getFirstNode(vsmap)
 
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
   args.append("clip", clip)
   args.append("value", value)
 
@@ -1560,13 +1541,12 @@ proc setFrameProp*(vsmap:VSMapObj;
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
-  assert( vsmap.len("vnode") == 1, "the vsmap should contain one node")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
   var clip = getFirstNode(vsmap)
 
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
   args.append("clip", clip)
   args.append("prop", prop)
   if intval.isSome:
@@ -1589,13 +1569,12 @@ proc setFrameProps*(vsmap:VSMapObj;
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
-  assert( vsmap.len("vnode") == 1, "the vsmap should contain one node")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
   var clip = getFirstNode(vsmap)
 
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
   args.append("clip", clip)
   args.append("any", any)
 
@@ -1625,13 +1604,12 @@ proc setVideoCache*(vsmap:VSMapObj;
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
-  assert( vsmap.len("vnode") == 1, "the vsmap should contain one node")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
   var clip = getFirstNode(vsmap)
 
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
   args.append("clip", clip)
   if mode.isSome: args.append("mode", mode.get)
   if fixedsize.isSome: args.append("fixedsize", fixedsize.get)
@@ -1641,7 +1619,7 @@ proc setVideoCache*(vsmap:VSMapObj;
   result.handle = api.handle.invoke(plug.handle, "SetVideoCache".cstring, args.handle)
   #API.freeMap(args)
 
-#[
+
 proc shuffleChannels*(vsmap:VSMapObj;
                       channels_in:seq[int];
                       channels_out:seq[int]):VSMapObj =
@@ -1649,12 +1627,15 @@ proc shuffleChannels*(vsmap:VSMapObj;
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
+  assert( vsmap.len("clips") >= 1, "the vsmap should contain a seq with nodes")
+  var clips = getFirstNodes(vsmap)
+
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
   for item in clips:
     args.append("clips", item)
+
   for item in channels_in:
     args.append("channels_in", item)
   for item in channels_out:
@@ -1662,7 +1643,7 @@ proc shuffleChannels*(vsmap:VSMapObj;
 
   result.handle = api.handle.invoke(plug.handle, "ShuffleChannels".cstring, args.handle)
   #API.freeMap(args)
-]#
+
 
 proc shufflePlanes*(vsmap:VSMapObj;
                     planes:seq[int];
@@ -1678,9 +1659,9 @@ proc shufflePlanes*(vsmap:VSMapObj;
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
   for item in clips:
     args.append("clips", item)
+
   for item in planes:
     args.append("planes", item)
   args.append("colorfamily", colorfamily)
@@ -1697,13 +1678,12 @@ proc sobel*(vsmap:VSMapObj;
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
-  assert( vsmap.len("vnode") == 1, "the vsmap should contain one node")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
   var clip = getFirstNode(vsmap)
 
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
   args.append("clip", clip)
   if planes.isSome:
     for item in planes.get:
@@ -1726,9 +1706,9 @@ proc splice*(vsmap:VSMapObj;
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
   for item in clips:
     args.append("clips", item)
+
   if mismatch.isSome: args.append("mismatch", mismatch.get)
 
   result.handle = api.handle.invoke(plug.handle, "Splice".cstring, args.handle)
@@ -1740,10 +1720,13 @@ proc splitChannels*(vsmap:VSMapObj):VSMapObj =
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
+  var clip = getFirstNode(vsmap)
+
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
+  args.append("clip", clip)
 
   result.handle = api.handle.invoke(plug.handle, "SplitChannels".cstring, args.handle)
   #API.freeMap(args)
@@ -1754,13 +1737,13 @@ proc splitPlanes*(vsmap:VSMapObj):VSMapObj =
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
-  assert( vsmap.len("vnode") == 1, "the vsmap should contain one node")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
   var clip = getFirstNode(vsmap)
 
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
+  args.append("clip", clip)
 
   result.handle = api.handle.invoke(plug.handle, "SplitPlanes".cstring, args.handle)
   #API.freeMap(args)
@@ -1777,6 +1760,8 @@ proc stackHorizontal*(vsmap:VSMapObj):VSMapObj =
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
+  for item in clips:
+    args.append("clips", item)
 
 
   result.handle = api.handle.invoke(plug.handle, "StackHorizontal".cstring, args.handle)
@@ -1794,6 +1779,8 @@ proc stackVertical*(vsmap:VSMapObj):VSMapObj =
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
+  for item in clips:
+    args.append("clips", item)
 
 
   result.handle = api.handle.invoke(plug.handle, "StackVertical".cstring, args.handle)
@@ -1829,13 +1816,13 @@ proc transpose*(vsmap:VSMapObj):VSMapObj =
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
-  assert( vsmap.len("vnode") == 1, "the vsmap should contain one node")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
   var clip = getFirstNode(vsmap)
 
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
+  args.append("clip", clip)
 
   result.handle = api.handle.invoke(plug.handle, "Transpose".cstring, args.handle)
   #API.freeMap(args)
@@ -1849,13 +1836,12 @@ proc trim*(vsmap:VSMapObj;
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
-  assert( vsmap.len("vnode") == 1, "the vsmap should contain one node")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
   var clip = getFirstNode(vsmap)
 
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
   args.append("clip", clip)
   if first.isSome: args.append("first", first.get)
   if last.isSome: args.append("last", last.get)
@@ -1870,13 +1856,13 @@ proc turn180*(vsmap:VSMapObj):VSMapObj =
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
   assert( vsmap.len != 0, "the vsmap should contain at least one item")
-  assert( vsmap.len("vnode") == 1, "the vsmap should contain one node")
+  assert( vsmap.len("clip") == 1, "the vsmap should contain one node")
   var clip = getFirstNode(vsmap)
 
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-
+  args.append("clip", clip)
 
   result.handle = api.handle.invoke(plug.handle, "Turn180".cstring, args.handle)
   #API.freeMap(args)
