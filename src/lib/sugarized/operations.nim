@@ -63,9 +63,16 @@ proc gen_clips*(clips:seq[VSMapObj]):VSMapObj =
 
 proc `+`*(clip1:VSMapObj, clip2:VSMapObj):VSMapObj =
   ## Adds two clips
-  echo clip1
-  echo clip2
-  let clips = gen_clips(@[clip1, clip2])
+  #echo clip1
+  #echo clip2
+  var tmp = @[clip1, clip2]
+  if clip1.handle == clip2.handle:
+    echo clip1
+    echo clip2
+    let c2 = clip1
+    tmp[1] = c2
+    #discard
+  let clips = gen_clips(tmp)
   splice(clips, mismatch=0.some)
 
 

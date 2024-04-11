@@ -15,8 +15,10 @@ proc createCore*(self:VSAPIObj; val:cint):VSCoreObj =
   result.handle = self.handle.createCore(val)
 
 proc `=destroy`*(self: VSCoreObj) =
-  api.handle.freecore(self.handle)
-
+  echo "[INFO] destroying VSCoreObj instance"
+  if not (self.handle == nil):
+    #echo api
+    api.handle.freecore(self.handle)
 
 # Core Info
 proc getCoreInfo*(api:VSApiObj;core:VSCoreObj):VSCoreInfo =

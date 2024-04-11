@@ -34,22 +34,33 @@ proc `=destroy`*(self: VSMapObj) =
     api.handle.freeMap(self.handle)
 
 
-proc `=sink`(dest: var VSMapObj; source: VSMapObj) =
-  `=destroy`(dest)
-  wasMoved(dest)
-  dest.handle = source.handle
-#[
-proc `=sink`(dest: var T; source: T) =
-  `=destroy`(dest)
-  wasMoved(dest)
-  dest.field = source.field
-]#
+# proc `=sink`(dest: var VSMapObj; source: VSMapObj) =
+#   `=destroy`(dest)
+#   wasMoved(dest)
+#   dest.handle = source.handle
+
+
 
 
 proc clearMap*(vsmap:VSMapObj) = 
   ## Deletes all the keys and their associated values from the map,
   ## leaving it empty.
   api.handle.clearMap(vsmap.handle)
+
+proc copyMap*(src: VSMapObj; dst: var VSMapObj)  =
+  api.handle.copyMap( src.handle, dst.handle )
+
+# proc copyMap*(src: VSMapObj): VSMapObj =
+#   api.handle.copyMap( src.handle, dst.handle )
+
+proc `=sink`(dest: var VSMapObj; source: VSMapObj) =
+  # protect against self-assignments:
+  if dest.handle != source.handle:
+    `=destroy`(dest)
+    wasMoved(dest)
+    #copyMap(source, dest) #.handle = source.handle
+    api.handle.copyMap( source.handle, dest.handle )
+#    void (VS_CC *copyMap)(const VSMap *src, VSMap *dst) VS_NOEXCEPT; /* copies all values in src to dst, if a key alrea…
 
 
 proc getError*(vsmap:VSMapObj):string = 
