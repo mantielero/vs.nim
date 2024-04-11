@@ -11,3 +11,6 @@ export audioformat, audioinfo
 
 import lib/output/output
 export output
+
+import lib/sugarized/[operations]
+export operations

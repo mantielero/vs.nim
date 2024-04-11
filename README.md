@@ -1,6 +1,11 @@
 ## About
 This project aims to wrap VapourSynth's API 4 version.
 
+## Status
+Right now it is possible:
+- to play and transform videos
+- to play audio
+
 # Development
 ## API
 https://vapoursynth.com/doc/api/vapoursynth4.h.html
@@ -32,10 +37,11 @@ For instance, `Source` is function within the plugin `ffms2` and we can call it 
 
 The file `wrapper/plugin_generator.nim` is used to create the files contained in `plugins4`. These defines Nim functions with Nim times that help calling the functions defined in the plugins. This way we won't need to use invoke. These definitions use `invoke` by us.
 
+The function "Source" from BestAudioSource has been renamed into "asource". This avoids having to specify if we are referring to `ffms2.source` or `bas.source`. We will use `source` and `asource` instead.
 
-## Audio
-https://www.vapoursynth.com/2020/01/audio-support-and-how-it-works/
 
+## Comparing Nim and python
+### Python
 Create the file `demo.vpy`:
 ```python
 import vapoursynth as vs
@@ -51,13 +57,39 @@ vspipe -o 0 -c y4m "demo.vpy" - | ffmpeg -i pipe: -i Output.wav -c:v prores -c:a
 rm Output.wav
 ```
 
-
-**QUÉ HACER EN EL CASO DE NIM**. Supongo que habría que hacer algo como en `output.nim``
-https://github.com/vapoursynth/vapoursynth/blob/master/src/vspipe/vspipe.cpp
-
-
-https://ffmpeg.org/nut.html
+## Nim
+TBD
 
 ## Link
 https://forum.doom9.org/showthread.php?t=173194
 https://vapoursynth.com/doc/pythonreference.html#VideoNode.set_output
+
+
+# TODO
+- [X] Slicing a video clip
+- [ ] Slicing an audio clip
+- [ ] Custom filters: https://mantielero.github.io/VapourSynth.nim/docs/filters/
+  - I managed to create Nim based filters as performant as C++ but leveraging Nim's macros.
+  - python example: https://forum.doom9.org/showthread.php?t=172206
+  - c example: [crop filter](https://github.com/vapoursynth/vapoursynth/blob/master/src/core/simplefilters.c#L136-L296) in `std`
+  - 
+- [ ] libnut support: 
+  - https://github.com/lu-zero/nut/blob/master/src/libnut/libnut.h
+  - https://ffmpeg.org/nut.html
+
+- Low priority:
+  - being able to use VapourSynth python scripts.
+  - supporting Avisynth plugins.
+  - AviSynth scripts: is this possible?
+  - Supporting more formats: I have not investigated much in this front.
+  - Interop with other libraries: 
+    - Cairo (or Skia, which should be more performant), 
+    - OpenCV
+    - ...
+  - Look for some inspiration in MoviePy:
+    - For example, making easier the composition/position of clips.
+
+
+
+# Blablabla
+## VSMap
