@@ -8,9 +8,9 @@ Enables piping a video or storing it in a file. The format emplyed is `YUV4MPEG2
 import std/[strutils,strformat,streams, math]
 import locks
 import tables
-import libapi, libvsframe, libvsnode, info, helper, libvsmap
-import ../wrapper/vapoursynth4
-import audio/[audioinfo,audioformat]
+import ../[libapi, libvsframe, libvsnode, info, helper, libvsmap]
+import ../../wrapper/vapoursynth4
+import ../audio/[audioinfo,audioformat]
 
 import easywave # https://github.com/johnnovak/easywave
 
@@ -201,7 +201,7 @@ proc writeY4mFrames(strm:FileStream, node:VSNodeObj):int =
   strm.flush()
   return nframes
 
-proc Pipey4m*(vsmap:VSMapObj ) =
+proc pipeY4M*(vsmap:VSMapObj ) =
   ## Pipes the video to stdout. The video goes uncompressed in Y4M format
   let node = getFirstNode(vsmap)
   let header = y4mheader( node )
@@ -211,7 +211,7 @@ proc Pipey4m*(vsmap:VSMapObj ) =
   #API.freeMap(vsmap)
   #API.freeNode(node)  
 
-proc Savey4m*(vsmap:VSMapObj; filename:string):int =
+proc saveY4M*(vsmap:VSMapObj; filename:string):int =
   ## Saves the video in `filename`
   #echo "ok0"
   let node = getFirstNode(vsmap)
