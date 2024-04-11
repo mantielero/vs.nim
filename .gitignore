@@ -1,3 +1,13 @@
 nimcache/
 nimblecache/
 htmldocs/
+
+src/wrapper/create
+src/wrapper/plugin_generator
+
+tests/*
+!tests/*.nim
+!tests/*.wav
+!tests/*.mkv
+
+tests/borrame.wav
