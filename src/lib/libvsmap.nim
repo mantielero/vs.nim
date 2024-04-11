@@ -29,7 +29,22 @@ proc newMap*():VSMapObj =
 
 
 proc `=destroy`*(self: VSMapObj) =
-  api.handle.freeMap(self.handle)
+  #echo self
+  if not self.handle.isNil:
+    api.handle.freeMap(self.handle)
+
+
+proc `=sink`(dest: var VSMapObj; source: VSMapObj) =
+  `=destroy`(dest)
+  wasMoved(dest)
+  dest.handle = source.handle
+#[
+proc `=sink`(dest: var T; source: T) =
+  `=destroy`(dest)
+  wasMoved(dest)
+  dest.field = source.field
+]#
+
 
 proc clearMap*(vsmap:VSMapObj) = 
   ## Deletes all the keys and their associated values from the map,
@@ -58,7 +73,7 @@ proc len*(vsmap: VSMapObj):int =
 
 template checkLimits(vsmap:VSMapObj; key:string; idx: int) =
   assert( idx >= 0, "`idx` shall be >= 0")
-  assert( idx < vsmap.len, "`idx` shall be <" & $vsmap.len & " but got: " & $idx)
+  assert( idx < vsmap.len(key), "`idx` shall be <" & $vsmap.len & " but got: " & $idx)
 
 
 
@@ -309,8 +324,6 @@ proc propGetFunc*( vsmap:VSMapObj; key:string; idx:int ):VSFunctionObj =
 iterator keys*(vsmap:VSMapObj):string =
   for idx in 0..<vsmap.len:
     yield vsmap.key(idx)
-
-
 
 type
   Item = tuple[key:string, typ:VSPropertyType, n,idx: int]

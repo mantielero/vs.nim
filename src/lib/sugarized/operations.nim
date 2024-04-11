@@ -1,4 +1,4 @@
-import ../libvsmap
+import ../[libvsmap, libvsnode]
 import ../../plugins4/std
 import ../../wrapper/vapoursynth4
 import std/[options]
@@ -6,15 +6,7 @@ import std/[options]
 let last* = -1  # This is just an identifier to specify the last frame 
 
 
-# proc gen_clips*(clips:seq[VSMapObj]):VSMapObj =
-#   ## Puts the nodes from a sequence of VSMaps just into one (as needed by Splice)
-#   var nodes:seq[VSNodeObj]
-#   result = newMap()
-#   for clip in clips:
-#     for item in clip.items:
-#       if item.typ == ptVideoNode:
-#         for i in 0..<clip.len(item):
-#           result.append( "clips", clip.propGetNode($item.key,i) )
+
 
 proc `[]`*(vsmap:VSMapObj;hs:HSlice):VSMapObj =  #;clip:Natural=0
   ## vsmap[1..3] (returns a clip -vsmap- including only those frames)
@@ -54,22 +46,39 @@ proc `[]`*(vsmap:VSMapObj; hs:HSlice; n:int):VSMapObj =
 
   vsmap[hs].selectEvery(n, @[0])
 
-# proc `+`*(clip1:ptr VSMap, clip2:ptr VSMap):ptr VSMap =
-#   ## Adds two clips
-#   let clips = gen_clips(@[clip1, clip2])
-#   splice(clips, mismatch=0.some)
+proc gen_clips*(clips:seq[VSMapObj]):VSMapObj =
+  ## Puts the nodes from a sequence of VSMaps just into one (as needed by Splice)
+  #var nodes:seq[VSNodeObj]
+  result = newMap()
+  #echo clips
+  for clip in clips: # these are VSMap
+    #echo clip
+    for item in clip.items:
+      #echo item
+      if item.typ == ptVideoNode:
+        #echo clip
+        for i in 0..<clip.len(item.key):
+          result.append( "clips", clip.propGetNode(item.key,i) )
+  #echo result
+
+proc `+`*(clip1:VSMapObj, clip2:VSMapObj):VSMapObj =
+  ## Adds two clips
+  echo clip1
+  echo clip2
+  let clips = gen_clips(@[clip1, clip2])
+  splice(clips, mismatch=0.some)
 
 
-# proc `*`*(clip:ptr VSMap, n:int):ptr VSMap =
-#   ## Adds two clips
-#   var tmp = newSeq[ptr VSMap]()
-#   for i in 0..<n:
-#     tmp &= clip
-#   let clips = gen_clips(tmp)
-#   splice(clips, mismatch=0.some)
+proc `*`*(clip:VSMapObj, n:int):VSMapObj =
+  ## Adds two clips
+  var tmp = newSeq[VSMapObj](n)
+  for i in 0..<n:
+    tmp[i] = clip
+  let clips = gen_clips(tmp)
+  splice(clips, mismatch=0.some)
 
-# proc `*`*(n:int, clip:ptr VSMap):ptr VSMap =
-#   clip * n
+proc `*`*(n:int, clip:VSMapObj):VSMapObj =
+  clip * n
 
 #SelectEvery
 #Inverse

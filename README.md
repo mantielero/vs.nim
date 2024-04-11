@@ -6,6 +6,13 @@ Right now it is possible:
 - to play and transform videos
 - to play audio
 
+## Differences with original project
+1. In order to allow chaining function calls, the first argument of a function is always a VSMap and all functions return VSMap. For that reason, functions are created within the folder `src/plugins4`.
+2. Those functions my receive optional paramenter. In Nim, I decided to use `std/options` for that. This is why you might see in some examples values like: `-1.some` or `none(whatever)`.
+
+
+
+
 # Development
 ## API
 https://vapoursynth.com/doc/api/vapoursynth4.h.html
@@ -66,6 +73,8 @@ https://vapoursynth.com/doc/pythonreference.html#VideoNode.set_output
 
 
 # TODO
+- [ ] Memory issue with `tests/ex06_adding.nim` and `tests/ex07_repeating.nim`
+  - https://nim-lang.org/docs/destructors.html
 - [X] Slicing a video clip
 - [ ] Slicing an audio clip
 - [ ] Custom filters: https://mantielero.github.io/VapourSynth.nim/docs/filters/
