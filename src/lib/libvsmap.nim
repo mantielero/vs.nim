@@ -193,7 +193,8 @@ proc getType*(vsmap:VSMapObj; key:string):VSPropertyType =
 
 
 proc len*(vsmap:VSMapObj; key:string):int = 
-  ## Returns the number of elements associated with a key in a property map. Returns -1 if there is no such key in the map.
+  ## Returns the number of elements associated with a key in
+  ## a property map. Returns -1 if there is no such key in the map.
   api.handle.mapNumElements(vsmap.handle, key).int
 
 
@@ -275,7 +276,7 @@ proc propGetNode*( vsmap:VSMapObj; key:string; idx:int):VSNodeObj =
   checkLimits(vsmap, key, idx)
   var err = peUnset.cint
   var perr = cast[ptr cint](unsafeAddr(err))   
-  result.handle = api.handle.mapGetNode(vsmap.handle, key.cstring, idx.cint, perr)  
+  result.handle = api.handle.mapGetNode(vsmap.handle, key.cstring, idx.cint, perr)
   checkError(err.VSMapPropertyError, key, idx)
 
 proc propGetFrame*( vsmap:VSMapObj; key:string; idx:int):VSFrameObj =
@@ -493,10 +494,15 @@ proc getFirstNode*(vsmap:VSMapObj):VSNodeObj =
   ## Returns a pointer to the node on success, or NULL in case of error.
   ## This function increases the node’s reference count, so freeNode() must be used when the node is no longer needed.
   ## If the map has an error set (i.e. if getError() returns non-NULL), VapourSynth will die with a fatal error.  
-  let key = vsmap.key(0)
-  assert( key == "clip", "expecting \"clip\" as first item in VSMap" )
+  let key = vsmap.key(0)        # ex:: "clip"
+  let typ = vsmap.getType(key)  # ex.: "ptvideonode"
+  let n   = vsmap.len(key)      # ex.: 1
+  #var tmp = vsmap.propGetNode(key,0)
+  #echo tmp
+  #assert ( (typ == ptvideonode or typ == ptaudionode), "expecting a video or audio node" )
+  #assert( key == "clip", "expecting \"clip\" as first item in VSMap" )
   
-  return vsmap.propGetNode("clip",0)
+  return vsmap.propGetNode(key,0) # First item of the given key
 
 
 proc getFirstNodes*(vsmap:VSMapObj):seq[VSNodeObj] =
@@ -504,7 +510,8 @@ proc getFirstNodes*(vsmap:VSMapObj):seq[VSNodeObj] =
   ## Returns a pointer to the node on success, or NULL in case of error.
   ## This function increases the node’s reference count, so freeNode() must be used when the node is no longer needed.
   ## If the map has an error set (i.e. if getError() returns non-NULL), VapourSynth will die with a fatal error.  
-  let key = key(vsmap,0)
+  let key = key(vsmap,0)  # Get the first key
+
   assert( key == "clips", "expecting \"clip\" as first item in VSMap" )
   
   #var tmp:seq[ptr VSNode]
