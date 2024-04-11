@@ -14,3 +14,5 @@ proc `=destroy`*(value: VSNodeObj) =
   api.handle.freeNode(value.handle)
 
 
+proc `$`*(val: VSNodeObj):string =
+  return "VSNodeObj ()"
