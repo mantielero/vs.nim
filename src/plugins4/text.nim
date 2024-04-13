@@ -1,9 +1,14 @@
 import options
-import ../lib/[libvsmap,libvsnode,libvsframe,libvsfunction,libvsplugins, libapi, libvsanode]
+import ../lib/vsmap/libvsmap
+import ../lib/node/libvsnode
+import ../lib/frame/libvsframe
+import ../lib/function/libvsfunction
+import ../lib/plugin/libvsplugins
+import ../lib/api/libapi
 
-proc clipInfo*(vsmap:VSMapObj;
+proc clipInfo*(vsmap:VSMapRef;
                alignment= none(int);
-               scale= none(int)):VSMapObj =
+               scale= none(int)):VSMapRef =
 
   let plug = getPluginById("com.vapoursynth.text")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.text\" not installed properly in your computer") 
@@ -14,24 +19,24 @@ proc clipInfo*(vsmap:VSMapObj;
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-  args.append("clip", clip)
-  if alignment.isSome: args.append("alignment", alignment.get)
-  if scale.isSome: args.append("scale", scale.get)
+  args.set("clip", clip)
+  if alignment.isSome: args.set("alignment", alignment.get)
+  if scale.isSome: args.set("scale", scale.get)
 
+  result = newMap()
   result.handle = api.handle.invoke(plug.handle, "ClipInfo".cstring, args.handle)
-  #API.freeMap(args)
 
 
-proc coreInfo*(vsmap= none(VSMapObj);
+proc coreInfo*(vsmap= none(VSMapRef);
                alignment= none(int);
-               scale= none(int)):VSMapObj =
+               scale= none(int)):VSMapRef =
 
   let plug = getPluginById("com.vapoursynth.text")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.text\" not installed properly in your computer") 
   if vsmap.isSome:
     assert( vsmap.get.len != 0, "the vsmap should contain at least one item")
     assert( vsmap.get.len("clip") == 1, "the vsmap should contain one node")
-  var clip:Option[VSNodeObj]
+  var clip:Option[VSNodeRef]
   if vsmap.isSome:
     clip = getFirstNode(vsmap.get).some
 
@@ -39,17 +44,17 @@ proc coreInfo*(vsmap= none(VSMapObj);
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
   if vsmap.isSome:
-    args.append("clip", clip.get)
-  if alignment.isSome: args.append("alignment", alignment.get)
-  if scale.isSome: args.append("scale", scale.get)
+    args.set("clip", clip.get)
+  if alignment.isSome: args.set("alignment", alignment.get)
+  if scale.isSome: args.set("scale", scale.get)
 
+  result = newMap()
   result.handle = api.handle.invoke(plug.handle, "CoreInfo".cstring, args.handle)
-  #API.freeMap(args)
 
 
-proc frameNum*(vsmap:VSMapObj;
+proc frameNum*(vsmap:VSMapRef;
                alignment= none(int);
-               scale= none(int)):VSMapObj =
+               scale= none(int)):VSMapRef =
 
   let plug = getPluginById("com.vapoursynth.text")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.text\" not installed properly in your computer") 
@@ -60,18 +65,18 @@ proc frameNum*(vsmap:VSMapObj;
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-  args.append("clip", clip)
-  if alignment.isSome: args.append("alignment", alignment.get)
-  if scale.isSome: args.append("scale", scale.get)
+  args.set("clip", clip)
+  if alignment.isSome: args.set("alignment", alignment.get)
+  if scale.isSome: args.set("scale", scale.get)
 
+  result = newMap()
   result.handle = api.handle.invoke(plug.handle, "FrameNum".cstring, args.handle)
-  #API.freeMap(args)
 
 
-proc frameProps*(vsmap:VSMapObj;
+proc frameProps*(vsmap:VSMapRef;
                  props= none(seq[string]);
                  alignment= none(int);
-                 scale= none(int)):VSMapObj =
+                 scale= none(int)):VSMapRef =
 
   let plug = getPluginById("com.vapoursynth.text")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.text\" not installed properly in your computer") 
@@ -82,21 +87,19 @@ proc frameProps*(vsmap:VSMapObj;
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-  args.append("clip", clip)
-  if props.isSome:
-    for item in props.get:
-      args.append("props", item)
-  if alignment.isSome: args.append("alignment", alignment.get)
-  if scale.isSome: args.append("scale", scale.get)
+  args.set("clip", clip)
+  if props.isSome: args.set("props", props.get)
+  if alignment.isSome: args.set("alignment", alignment.get)
+  if scale.isSome: args.set("scale", scale.get)
 
+  result = newMap()
   result.handle = api.handle.invoke(plug.handle, "FrameProps".cstring, args.handle)
-  #API.freeMap(args)
 
 
-proc text*(vsmap:VSMapObj;
+proc text*(vsmap:VSMapRef;
            text:string;
            alignment= none(int);
-           scale= none(int)):VSMapObj =
+           scale= none(int)):VSMapRef =
 
   let plug = getPluginById("com.vapoursynth.text")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.text\" not installed properly in your computer") 
@@ -107,12 +110,12 @@ proc text*(vsmap:VSMapObj;
 
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
-  args.append("clip", clip)
-  args.append("text", text)
-  if alignment.isSome: args.append("alignment", alignment.get)
-  if scale.isSome: args.append("scale", scale.get)
+  args.set("clip", clip)
+  args.set("text", text)
+  if alignment.isSome: args.set("alignment", alignment.get)
+  if scale.isSome: args.set("scale", scale.get)
 
+  result = newMap()
   result.handle = api.handle.invoke(plug.handle, "Text".cstring, args.handle)
-  #API.freeMap(args)
 
 

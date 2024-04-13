@@ -1,28 +1,29 @@
 import ../../wrapper/vapoursynth4
-import ../libapi
+import ../api/libapi
 import std/strformat
 
 type
-  VSAudioFormatObj* = object
+  VSAudioFormatObj = object
     handle*: ptr VSAudioFormat
+  VSAudioFormatRef* = ref VSAudioFormatObj
 
 # VSAudioFormatObj
-proc sampleType*(format: VSAudioFormatObj):VSSampleType =
+proc sampleType*(format: VSAudioFormatRef):VSSampleType =
   return format.handle.sampleType.VSSampleType
 
-proc bitsPerSample*(format: VSAudioFormatObj):int =
+proc bitsPerSample*(format: VSAudioFormatRef):int =
   return format.handle.bitsPerSample.int
 
-proc bytesPerSample*(format: VSAudioFormatObj):int =
+proc bytesPerSample*(format: VSAudioFormatRef):int =
   return format.handle.bytesPerSample.int
 
-proc numChannels*(format: VSAudioFormatObj):int =
+proc numChannels*(format: VSAudioFormatRef):int =
   return format.handle.numChannels.int
 
-proc channelLayout*(format: VSAudioFormatObj):int =
+proc channelLayout*(format: VSAudioFormatRef):int =
   return format.handle.channelLayout.int
 
-proc getAudioFormatName*(format:VSAudioFormatObj):string =
+proc getAudioFormatName*(format:VSAudioFormatRef):string =
   var ret = api.handle.getAudioFormatName(format.handle, result.cstring)
 
 # VSAudioFormat

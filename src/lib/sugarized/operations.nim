@@ -1,4 +1,5 @@
-import ../[libvsmap, libvsnode]
+import ../node/libvsnode
+import ../vsmap/libvsmap
 import ../../plugins4/std
 import ../../wrapper/vapoursynth4
 import std/[options]
@@ -8,7 +9,7 @@ let last* = -1  # This is just an identifier to specify the last frame
 
 
 
-proc `[]`*(vsmap:VSMapObj;hs:HSlice):VSMapObj =  #;clip:Natural=0
+proc `[]`*(vsmap:VSMapRef;hs:HSlice):VSMapRef =  #;clip:Natural=0
   ## vsmap[1..3] (returns a clip -vsmap- including only those frames)
   ## Only works on one clip
   let key = vsmap.key(0)
@@ -24,7 +25,7 @@ proc `[]`*(vsmap:VSMapObj;hs:HSlice):VSMapObj =  #;clip:Natural=0
   var i = hs.a
   var j = hs.b
   # Get number of frames
-  let node = vsmap.propGetNode("clip",0)
+  let node = vsmap.getNode("clip",0)
   let numFrames = node.getVideoInfo.numFrames
   if i < 0:
     i = numFrames + i
@@ -40,13 +41,13 @@ proc `[]`*(vsmap:VSMapObj;hs:HSlice):VSMapObj =  #;clip:Natural=0
   if inverse:
     result = result.reverse
 
-proc `[]`*(vsmap:VSMapObj; hs:HSlice; n:int):VSMapObj = 
+proc `[]`*(vsmap:VSMapRef; hs:HSlice; n:int):VSMapRef = 
   if n < 1:
     raise newException(ValueError, &"n={n} should be bigger than 1")
 
   vsmap[hs].selectEvery(n, @[0])
 
-proc gen_clips*(clips:sink seq[VSMapObj]):VSMapObj =
+proc gen_clips*(clips:sink seq[VSMapRef]):VSMapRef =
   ## Puts the nodes from a sequence of VSMaps just into one (as needed by Splice)
   #var nodes:seq[VSNodeObj]
   result = newMap()
@@ -58,11 +59,11 @@ proc gen_clips*(clips:sink seq[VSMapObj]):VSMapObj =
       if item.typ == ptVideoNode:
         #echo clip
         for i in 0..<clip.len(item.key):
-          result.append( "clips", clip.propGetNode(item.key,i) )
-  echo result
+          result.set( "clips", clip.getNode(item.key,i) )
+  #echo result
   #echo result
 
-proc `+`*(clip1:sink VSMapObj, clip2:sink VSMapObj):VSMapObj =
+proc `+`*(clip1:sink VSMapRef, clip2:sink VSMapRef):VSMapRef =
   ## Adds two clips
   #echo clip1
   #echo clip2
@@ -77,15 +78,15 @@ proc `+`*(clip1:sink VSMapObj, clip2:sink VSMapObj):VSMapObj =
   return splice(clips, mismatch=0.some)
 
 
-proc `**`*(clip:sink VSMapObj, n:int):VSMapObj =
+proc `**`*(clip:sink VSMapRef; n:int):VSMapRef =
   ## Adds two clips
-  var tmp = newSeq[VSMapObj](n)
+  var tmp = newSeq[VSMapRef](n)
   for i in 0..<n:
     tmp[i] = clip
   let clips = gen_clips(tmp)
   splice(clips, mismatch=0.some)
 
-proc `*`*(clip:sink VSMapObj, n:int):VSMapObj =
+proc `*`*(clip:sink VSMapRef; n:int):VSMapRef =
   ## Adds two clips
   #var tmp = newSeq[VSMapObj](n)
   var clips = newMap()
@@ -95,11 +96,11 @@ proc `*`*(clip:sink VSMapObj, n:int):VSMapObj =
       if item.typ == ptVideoNode:
         #echo clip
         for i in 0..<clip.len(item.key):
-          clips.append( "clips", clip.propGetNode(item.key,i) )
+          clips.set( "clips", clip.getNode(item.key,i) )
   #let clips = gen_clips(tmp)
   splice(clips, mismatch=0.some)
 
-proc `*`*(n:int, clip:sink VSMapObj):VSMapObj =
+proc `*`*(n:int, clip:sink VSMapRef):VSMapRef =
   clip * n
 
 #SelectEvery

@@ -1,7 +1,12 @@
 import options
-import ../lib/[libvsmap,libvsnode,libvsframe,libvsfunction,libvsplugins, libapi, libvsanode]
+import ../lib/vsmap/libvsmap
+import ../lib/node/libvsnode
+import ../lib/frame/libvsframe
+import ../lib/function/libvsfunction
+import ../lib/plugin/libvsplugins
+import ../lib/api/libapi
 
-proc getLogLevel*():VSMapObj =
+proc getLogLevel*():VSMapRef =
 
   let plug = getPluginById("com.vapoursynth.ffms2")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.ffms2\" not installed properly in your computer") 
@@ -10,15 +15,15 @@ proc getLogLevel*():VSMapObj =
   let args = newMap()
 
 
+  result = newMap()
   result.handle = api.handle.invoke(plug.handle, "GetLogLevel".cstring, args.handle)
-  #API.freeMap(args)
 
 
 proc index*(source:string;
             cachefile= none(string);
             indextracks= none(seq[int]);
             errorhandling= none(int);
-            overwrite= none(int)):VSMapObj =
+            overwrite= none(int)):VSMapRef =
 
   let plug = getPluginById("com.vapoursynth.ffms2")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.ffms2\" not installed properly in your computer") 
@@ -26,19 +31,17 @@ proc index*(source:string;
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
 
-  args.append("source", source)
-  if cachefile.isSome: args.append("cachefile", cachefile.get)
-  if indextracks.isSome:
-    for item in indextracks.get:
-      args.append("indextracks", item)
-  if errorhandling.isSome: args.append("errorhandling", errorhandling.get)
-  if overwrite.isSome: args.append("overwrite", overwrite.get)
+  args.set("source", source)
+  if cachefile.isSome: args.set("cachefile", cachefile.get)
+  if indextracks.isSome: args.set("indextracks", indextracks.get)
+  if errorhandling.isSome: args.set("errorhandling", errorhandling.get)
+  if overwrite.isSome: args.set("overwrite", overwrite.get)
 
+  result = newMap()
   result.handle = api.handle.invoke(plug.handle, "Index".cstring, args.handle)
-  #API.freeMap(args)
 
 
-proc setLogLevel*(level:int):VSMapObj =
+proc setLogLevel*(level:int):VSMapRef =
 
   let plug = getPluginById("com.vapoursynth.ffms2")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.ffms2\" not installed properly in your computer") 
@@ -47,8 +50,8 @@ proc setLogLevel*(level:int):VSMapObj =
   let args = newMap()
 
 
+  result = newMap()
   result.handle = api.handle.invoke(plug.handle, "SetLogLevel".cstring, args.handle)
-  #API.freeMap(args)
 
 
 proc source*(source:string;
@@ -64,7 +67,7 @@ proc source*(source:string;
              height= none(int);
              resizer= none(string);
              format= none(int);
-             alpha= none(int)):VSMapObj =
+             alpha= none(int)):VSMapRef =
 
   let plug = getPluginById("com.vapoursynth.ffms2")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.ffms2\" not installed properly in your computer") 
@@ -72,26 +75,26 @@ proc source*(source:string;
   # Convert the function parameters into a VSMap (taking into account that some of them might be optional)
   let args = newMap()
 
-  args.append("source", source)
-  if track.isSome: args.append("track", track.get)
-  if cache.isSome: args.append("cache", cache.get)
-  if cachefile.isSome: args.append("cachefile", cachefile.get)
-  if fpsnum.isSome: args.append("fpsnum", fpsnum.get)
-  if fpsden.isSome: args.append("fpsden", fpsden.get)
-  if threads.isSome: args.append("threads", threads.get)
-  if timecodes.isSome: args.append("timecodes", timecodes.get)
-  if seekmode.isSome: args.append("seekmode", seekmode.get)
-  if width.isSome: args.append("width", width.get)
-  if height.isSome: args.append("height", height.get)
-  if resizer.isSome: args.append("resizer", resizer.get)
-  if format.isSome: args.append("format", format.get)
-  if alpha.isSome: args.append("alpha", alpha.get)
+  args.set("source", source)
+  if track.isSome: args.set("track", track.get)
+  if cache.isSome: args.set("cache", cache.get)
+  if cachefile.isSome: args.set("cachefile", cachefile.get)
+  if fpsnum.isSome: args.set("fpsnum", fpsnum.get)
+  if fpsden.isSome: args.set("fpsden", fpsden.get)
+  if threads.isSome: args.set("threads", threads.get)
+  if timecodes.isSome: args.set("timecodes", timecodes.get)
+  if seekmode.isSome: args.set("seekmode", seekmode.get)
+  if width.isSome: args.set("width", width.get)
+  if height.isSome: args.set("height", height.get)
+  if resizer.isSome: args.set("resizer", resizer.get)
+  if format.isSome: args.set("format", format.get)
+  if alpha.isSome: args.set("alpha", alpha.get)
 
+  result = newMap()
   result.handle = api.handle.invoke(plug.handle, "Source".cstring, args.handle)
-  #API.freeMap(args)
 
 
-proc version*():VSMapObj =
+proc version*():VSMapRef =
 
   let plug = getPluginById("com.vapoursynth.ffms2")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.ffms2\" not installed properly in your computer") 
@@ -100,7 +103,7 @@ proc version*():VSMapObj =
   let args = newMap()
 
 
+  result = newMap()
   result.handle = api.handle.invoke(plug.handle, "Version".cstring, args.handle)
-  #API.freeMap(args)
 
 

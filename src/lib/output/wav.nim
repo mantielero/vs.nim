@@ -1,10 +1,11 @@
 # AUDIO: save as WAV file
 import ../audio/[audioinfo,audioformat]
-import ../[libvsmap, libvsframe]#, libapi, , libvsnode, info, helper]
+import ../frame/[libvsframe]#, libapi, , libvsnode, info, helper]
+import ../vsmap/libvsmap
 #import ../../wrapper/vapoursynth4
 import easywave # https://github.com/johnnovak/easywave
 
-proc saveWave*(vsmap:VSMapObj; filename:string):int {.discardable.} =
+proc saveWave*(vsmap:VSMapRef; filename:string):int {.discardable.} =
   ## Saves the video in `filename`
   #echo "ok0"
   let 

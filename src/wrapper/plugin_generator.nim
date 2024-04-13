@@ -16,7 +16,9 @@ existing plugins.
 
 import std/[strformat, strutils, os]
 import vapoursynth4
-import ../lib/[libapi,libcore,libvsplugins]
+import ../lib/api/libapi
+import ../lib/core/libcore
+import ../lib/plugin/libvsplugins
 
 #let
 #  API*  = getVapourSynthAPI(4.cint)
@@ -61,25 +63,25 @@ proc convertType(`type`:string):string =
            of "data[]":
              "seq[string]"
            of "vnode":
-             "VSNodeObj"   
+             "VSNodeRef"   
            of "vnode[]":
-             "seq[VSNodeObj]"                          
+             "seq[VSNodeRef]"                          
            of "anode":
-             "VSNodeObj"   
+             "VSNodeRef"   
            of "anode[]":
-             "seq[VSNodeObj]"  
+             "seq[VSNodeRef]"  
            of "clip":
-             "VSNodeObj"
+             "VSNodeRef"
            of "clip[]":
-             "seq[VSNodeObj]"
+             "seq[VSNodeRef]"
            of "frame":
-             "VSFrameObj"             
+             "VSFrameRef"             
            of "frame[]":
-             "seq[VSFrameObj]"               
+             "seq[VSFrameRef]"               
            of "func":
-             "VSFunctionObj"             
+             "VSFunctionRef"             
            of "func[]":
-             "seq[VSFunctionObj]"             
+             "seq[VSFunctionRef]"             
            else:
              `type`
 
@@ -122,7 +124,7 @@ proc genBodyForFirstArgument(function:VSPluginFunctionObj):string =
 
     # Just one clip
 
-    if newtype == "VSNodeObj":
+    if newtype == "VSNodeRef":
       var clip = "clip" #"" #"vnode" # "clip"      
       # if arg.typ == "vnode":
       #   clip = "vnode"
@@ -136,20 +138,20 @@ proc genBodyForFirstArgument(function:VSPluginFunctionObj):string =
         result &= &"  var {argName} = getFirstNode(vsmap)\n\n" 
       else:
         #result &= &"  if {argName}.isSome: args.{funcName}(\"{arg.name}\", {argName}.get)\n"
-        result &= &"  var {argName}:Option[VSNodeObj]\n"
+        result &= &"  var {argName}:Option[VSNodeRef]\n"
         result &= "  if vsmap.isSome:\n"
         result &= &"    {argName} = getFirstNode(vsmap.get).some\n\n"
     
     # For a sequence of clips in the first argument
     # TODO: to extract all nodes in the list and add it to the new map
-    elif newtype == "seq[VSNodeObj]":
+    elif newtype == "seq[VSNodeRef]":
       var clip = "clips"           
       result &= &"  {ident}assert( {vsmap}.len(\"{clip}\") >= 1, \"the vsmap should contain a seq with nodes\")\n"
 
       if not arg.optional:
         result &= &"  var {argName} = getFirstNodes(vsmap)\n\n"            
       else:
-        result &= &"  var {argName}:seq[VSNodeObj]\n"
+        result &= &"  var {argName}:seq[VSNodeRef]\n"
         result &= &"  if vsmap.isSome:\n"        
         result &= &"    {argName} = getFirstNodes(vsmap.get)\n\n"
 
@@ -171,9 +173,9 @@ proc genBodyForOtherArguments(function:VSPluginFunctionObj; ini=1):string =
       let newtype = convertType( arg.typ )
       let funcName = case newtype:
                     of "seq[int]", "seq[float]":
-                      "append"
+                      "set"
                     else:
-                      "append"
+                      "set"
       # If the argument is a sequence
       if newtype[0..2] == "seq" and funcName != "set":
         if not arg.optional:
@@ -212,13 +214,13 @@ proc addFirstArgument(function:VSPluginFunctionObj):string =
 
   if function.args[0].typ in ["clip", "vnode", "anode"]:
     if arg.optional:
-      result &= &"  {ident}args.append(\"{arg.name}\", {argName}.get)"
+      result &= &"  {ident}args.set(\"{arg.name}\", {argName}.get)"
     else:
-      result &= &"  {ident}args.append(\"{arg.name}\", {argName})"
+      result &= &"  {ident}args.set(\"{arg.name}\", {argName})"
   else:
     result &= &"  {ident}for item in {argName}:\n"
-    result &= &"    {ident}args.append(\"{arg.name}\", item)\n"
-    #retun tmp #&"  args.append(\"{arg.name}\", {argName})"
+    result &= &"    {ident}args.set(\"{arg.name}\", item)\n"
+    #retun tmp #&"  args.set(\"{arg.name}\", {argName})"
 
 
 
@@ -256,14 +258,14 @@ proc genSignature(function:VSPluginFunctionObj; pluginId:string):string =
     # If the first argument is "clip" or "clip[]"
     if arg.typ in @["vnode", "vnode[]", "anode", "anode[]"] and flagFirstArgument:
       argName = "vsmap"
-      newtype = "VSMapObj"
+      newtype = "VSMapRef"
     if not arg.optional: # Mandatory
       result &= &"{argName}:{newtype}"
     else:  # Optional
       result &= &"{argName}= none({newtype})"
     flagFirstArgument = false
 
-  result &= "):VSMapObj =\n"
+  result &= "):VSMapRef =\n"
 
 
 
@@ -289,8 +291,8 @@ proc genFunction(plugin:VSPluginObj, function:VSPluginFunctionObj):string =
   let args = newMap()
 {add_first_argument}
 {body_other_arguments}
+  result = newMap()
   result.handle = api.handle.invoke(plug.handle, "{function.name}".cstring, args.handle)
-  #API.freeMap(args)
 """
 
 
@@ -302,7 +304,14 @@ proc main =
 
   for plugin in plugins():
     var source = "import options\n"
-    source &= "import ../lib/[libvsmap,libvsnode,libvsframe,libvsfunction,libvsplugins, libapi, libvsanode]\n\n"
+    #source &= "import ../lib/[libvsanode]\n"
+    source &= "import ../lib/vsmap/libvsmap\n"
+    source &= "import ../lib/node/libvsnode\n"
+    source &= "import ../lib/frame/libvsframe\n"
+    source &= "import ../lib/function/libvsfunction\n"
+    source &= "import ../lib/plugin/libvsplugins\n"
+    source &= "import ../lib/api/libapi\n\n"
+
     for function in functions(plugin):
       source &= genFunction(plugin, function)
       source &= "\n\n"

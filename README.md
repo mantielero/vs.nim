@@ -98,7 +98,14 @@ https://vapoursynth.com/doc/pythonreference.html#VideoNode.set_output
   - Look for some inspiration in MoviePy:
     - For example, making easier the composition/position of clips.
 
-
+- [VSMap](https://vapoursynth.com/doc/api/vapoursynth4.h.html#struct-vsmap):
+  - [ ] mapSetEmpty
+  - [ ] mapGetIntSaturated
+  - [ ] mapGetFloatSaturated
+  - [ ] mapGetDataTypeHint
+  - [ ] mapConsumeNode
+  - [ ] mapConsumeFrame
+  - [ ] mapConsumeFunction
 
 # Blablabla
 ## VSMap

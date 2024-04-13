@@ -8,7 +8,11 @@ Enables piping a video or storing it in a file. The format emplyed is `YUV4MPEG2
 import std/[strutils,strformat,streams, math]
 import locks
 import tables
-import ../[libapi, libvsframe, libvsnode, info, helper, libvsmap]
+import ../api/libapi
+import ../frame/libvsframe
+import ../node/libvsnode
+import ../info/[info, helper]
+import ../vsmap/libvsmap
 import ../../wrapper/vapoursynth4
 
 import wav
@@ -32,7 +36,7 @@ var
   cond : Cond  
 
 
-proc y4mheader(node:VSNodeObj):string =
+proc y4mheader(node:VSNodeRef):string =
   ## y4m stream header generator
   ##
   ## TODO: I: sólo considera vídeo progresivo (p)
@@ -94,7 +98,7 @@ proc frameDoneCallback( reqsData: pointer;
     while reqs.frames.hasKey( k ):
       #echo "Writing: ", k
       #echo repr reqs.frames
-      var frame:VSFrameObj
+      var frame = new VSFrameRef
       frame.handle = reqs.frames[k]     
       #let f = 
       #echo f.width(0)
@@ -133,7 +137,7 @@ proc frameDoneCallback( reqsData: pointer;
   else:
     raise newException(ValueError, "Failed to get frame")
 
-proc writeY4mFramesAsync(strm:FileStream, node:VSNodeObj):int =
+proc writeY4mFramesAsync(strm:FileStream, node:VSNodeRef):int =
   # Y-Cb-Cr plane order
   # Y is luminance. It is 8 bits (one byte) per pixel. but you must watch the line stride.
   # The U and V planes are one quarter (half the height and half the width) the resolution of the Y plane. So each byte is 4 pixels (2 wide 2 tall).
@@ -173,7 +177,7 @@ proc writeY4mFramesAsync(strm:FileStream, node:VSNodeObj):int =
 
 
 
-proc writeY4mFrames(strm:FileStream, node:VSNodeObj):int =
+proc writeY4mFrames(strm:FileStream, node:VSNodeRef):int =
   # Y-Cb-Cr plane order
   # Y is luminance. It is 8 bits (one byte) per pixel. but you must watch the line stride.
   # The U and V planes are one quarter (half the height and half the width) the resolution of the Y plane. So each byte is 4 pixels (2 wide 2 tall).
@@ -203,7 +207,7 @@ proc writeY4mFrames(strm:FileStream, node:VSNodeObj):int =
   strm.flush()
   return nframes
 
-proc pipeY4M*(vsmap:VSMapObj ) =
+proc pipeY4M*(vsmap:VSMapRef ) =
   ## Pipes the video to stdout. The video goes uncompressed in Y4M format
   let node = getFirstNode(vsmap)
   let header = y4mheader( node )
@@ -213,7 +217,7 @@ proc pipeY4M*(vsmap:VSMapObj ) =
   #API.freeMap(vsmap)
   #API.freeNode(node)  
 
-proc saveY4M*(vsmap:VSMapObj; filename:string):int =
+proc saveY4M*(vsmap:VSMapRef; filename:string):int =
   ## Saves the video in `filename`
   #echo "ok0"
   let node = getFirstNode(vsmap)
@@ -279,7 +283,7 @@ proc doNothing( reqsData: pointer,
   if (reqs.completedFrames == reqs.numFrames):
     cond.signal()
 
-proc Null*(vsmap:VSMapObj):int =
+proc Null*(vsmap:VSMapRef):int =
   reqs.nthreads = getInfoNumThreads()  # Get the number of threads
   let node = getFirstNode(vsmap)
   let vinfo = getVideoInfo(node) # video info pointer

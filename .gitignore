@@ -11,3 +11,11 @@ tests/*
 !tests/*.mkv
 
 tests/borrame.wav
+
+examples/*
+!examples/*.nim
+
+media/*.ffindex
+media/*.y4m
+tests/*.y4m
+examples/*.y4m

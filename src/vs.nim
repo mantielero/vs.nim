@@ -1,7 +1,24 @@
 {.passL:"-lvapoursynth".}
+import lib/version/consts
+export consts
 
-import lib/[consts, libapi, libcore, helper, libvsplugins, libvsmap, info, libvsnode] # libvsanode,
-export consts, libapi, libcore, helper, libvsplugins, libvsmap, libvsnode, info
+import lib/api/libapi
+export libapi
+
+import lib/core/libcore
+export libcore
+
+import lib/vsmap/[libvsmap]
+export libvsmap
+
+import lib/plugin/libvsplugins
+export libvsplugins
+
+import lib/info/[info, helper]
+export info, helper
+
+import lib/node/libvsnode
+export libvsnode
 
 import plugins4/all_plugins
 export all_plugins
