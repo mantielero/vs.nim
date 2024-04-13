@@ -29,17 +29,41 @@ proc newMap*():VSMapObj =
 
 
 proc `=destroy`*(self: VSMapObj) =
-  #echo self
-  if not self.handle.isNil:
+  #if not self.handle.isNil:
+  if self.handle != nil:
+    #echo sizeof( *self.handle )
+    #echo sizeof(ptr VSMap) 
+    #echo "destroying VSMapObj"    
     api.handle.freeMap(self.handle)
 
+# proc `=wasMoved`*(self: var VSMapObj) =
+#   self.handle = nil
 
-# proc `=sink`(dest: var VSMapObj; source: VSMapObj) =
-#   `=destroy`(dest)
-#   wasMoved(dest)
-#   dest.handle = source.handle
+#proc `=sink`(dest: var VSMapObj; source: VSMapObj) {.error.}
+#proc `=move`(dest: var VSMapObj; source: VSMapObj) {.error.}
+
+proc `=sink`(dest: var VSMapObj; source: VSMapObj) =
+  `=destroy`(dest)  # Frees the destination
+  wasMoved(dest)    # assigns 'nil' to the handle
+  dest.handle = source.handle
 
 
+proc `=copy`*(dst: var VSMapObj; src: VSMapObj) =
+  # do nothing for self-assignments:
+  if dst.handle == src.handle: return
+  
+  # clean the destination
+  `=destroy`(dst)  
+  wasMoved(dst)
+  dst.handle = src.handle
+  # a.len = b.len
+  # a.cap = b.cap
+  # if b.data != nil:
+  #   a.data = cast[typeof(a.data)](alloc(a.cap * sizeof(T)))
+  #   for i in 0..<a.len:
+  #     a.data[i] = b.data[i]
+
+#proc `=copy`*(dest: var VSMapObj; src: VSMapObj) {.error.}
 
 
 proc clearMap*(vsmap:VSMapObj) = 
@@ -53,14 +77,14 @@ proc copyMap*(src: VSMapObj; dst: var VSMapObj)  =
 # proc copyMap*(src: VSMapObj): VSMapObj =
 #   api.handle.copyMap( src.handle, dst.handle )
 
-proc `=sink`(dest: var VSMapObj; source: VSMapObj) =
-  # protect against self-assignments:
-  if dest.handle != source.handle:
-    `=destroy`(dest)
-    wasMoved(dest)
-    #copyMap(source, dest) #.handle = source.handle
-    api.handle.copyMap( source.handle, dest.handle )
-#    void (VS_CC *copyMap)(const VSMap *src, VSMap *dst) VS_NOEXCEPT; /* copies all values in src to dst, if a key alrea…
+# proc `=sink`(dest: var VSMapObj; source: VSMapObj) =
+#   # protect against self-assignments:
+#   if dest.handle != source.handle:
+#     `=destroy`(dest)
+#     wasMoved(dest)
+#     #copyMap(source, dest) #.handle = source.handle
+#     api.handle.copyMap( source.handle, dest.handle )
+# #    void (VS_CC *copyMap)(const VSMap *src, VSMap *dst) VS_NOEXCEPT; /* copies all values in src to dst, if a key alrea…
 
 
 proc getError*(vsmap:VSMapObj):string = 
@@ -554,6 +578,8 @@ proc checkContainsJustOneNode*(inClip:ptr VSMap) =
 
 # ---- Pretty printing a VSMap ----
 proc `$`*(m:VSMapObj):string =
+  if m.handle == nil:
+    return "NIL"
   result = &"VSMap: {m.len} item(s)\n"
   for item in m.items():
     result &= &"  {item}\n"

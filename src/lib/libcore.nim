@@ -5,7 +5,7 @@ setThreadCount
 ]#
 import ../wrapper/vapoursynth4
 import libapi
-import std/[strutils,strformat]
+import std/[strutils,strformat] #, os]
 
 type
   VSCoreObj* = object
@@ -14,15 +14,12 @@ type
 proc createCore*(self:VSAPIObj; val:cint):VSCoreObj =
   result.handle = self.handle.createCore(val)
 
-proc `=destroy`*(self: VSCoreObj) =
-  echo "[INFO] destroying VSCoreObj instance"
-  if not (self.handle == nil):
-    #echo api
-    api.handle.freecore(self.handle)
+
 
 # Core Info
 proc getCoreInfo*(api:VSApiObj;core:VSCoreObj):VSCoreInfo =
   api.handle.getcoreinfo(core.handle, result.unsafeAddr)
+
 
 
 proc `$`*(val:VSCoreInfo):string =
@@ -36,6 +33,20 @@ proc `$`*(val:VSCoreInfo):string =
   usedframebuffersize: {$val.usedframebuffersize}
   """
 
+
+# proc `=destroy`*(self: VSCoreObj) =
+#   echo "[INFO] destroying VSCoreObj instance"
+#   if self.handle != nil:
+#     #echo repr api.handle
+#     echo "ok"
+#     echo api.getCoreInfo(self)
+#     # sleep(2000)
+#     # echo repr api.handle
+#     echo self
+#     echo api.handle == nil
+#     echo self.handle == nil
+#     api.handle.freecore(self.handle)
+#     echo "ok"
 
 proc getVersionString*(api:VSApiObj;core:VSCoreObj):string =
   var info:VSCoreInfo
