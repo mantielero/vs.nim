@@ -105,3 +105,6 @@ proc `*`*(n:int, clip:sink VSMapRef):VSMapRef =
 
 #SelectEvery
 #Inverse
+# -----------
+converter toVsMap*(clips:seq[VSMapRef]):VSMapRef =
+  gen_clips(clips)
