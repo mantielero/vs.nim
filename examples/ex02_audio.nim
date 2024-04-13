@@ -14,7 +14,10 @@ import vs, options
   #   numFrames:  604
 
 
-
+# ../media/audio_24bits_signed_PCM.wav
+# audio_32bits_signed_PCM.wav  # OK
+# audio_24bits_signed_PCM.wav  # OK
+# audio_16bits_signed_PCM.wav  # OK
 var audio = asource("../media/audio_24bits_signed_PCM.wav", track = -1.some)
 echo audio  # VSMapObj
 

@@ -27,6 +27,7 @@ proc saveWave*(vsmap:VSMapRef; filename:string):int {.discardable.} =
   var rw = createRiffFile(filename, FourCC_WAVE, endian)
 
   # Write header
+  echo format.bitsPerSample, " ", audioInfo.sampleRate, " ", format.numChannels
   let wf = WaveFormat(
     sampleFormat:  sfPCM,  # sfFloat
     bitsPerSample: format.bitsPerSample,
@@ -50,6 +51,7 @@ proc saveWave*(vsmap:VSMapRef; filename:string):int {.discardable.} =
     for channel in 0..<nChannels:
       punteros[channel] = frame.getReadPtr(channel)
 
+    # 16bits case
     if bytesPerOutputSample == 2:
       var data = newSeq[ptr UncheckedArray[uint16]](nChannels)
       for channel in 0..<nChannels:
@@ -61,21 +63,23 @@ proc saveWave*(vsmap:VSMapRef; filename:string):int {.discardable.} =
           newData[nChannels*i + channel]   = data[channel][i]
 
       rw.write(newData,0, nSamples*nChannels - 1)
-    
+
+    # 24bits case
     elif bytesPerOutputSample == 3:
       var data = newSeq[ptr UncheckedArray[uint8]](nChannels)
       for channel in 0..<nChannels:
         data[channel] = cast[ptr UncheckedArray[uint8]](frame.getReadPtr(channel))
-
+      #echo nSamples, " ", numChannels, " ", nChannels
       var newData = newSeq[uint8]( nSamples * numChannels * 3)  # 3 bytes per sample (24bits)
       for i in 0..<nSamples:
         for channel in 0..<nChannels:
-          newData[nChannels*i*3 + channel * 3 ]    = data[channel][i * 4 + 1]
+          newData[nChannels*i*3 + channel * 3 ]    = data[channel][i * 4 + 3]
           newData[nChannels*i*3 + channel * 3 + 1] = data[channel][i * 4 + 2]
-          newData[nChannels*i*3 + channel * 3 + 2] = data[channel][i * 4 + 3]
+          newData[nChannels*i*3 + channel * 3 + 2] = data[channel][i * 4 + 1]
 
       rw.write(newData,0, nSamples*nChannels*3 - 1)
 
+    # 32bits case
     elif bytesPerOutputSample == 4:
       #echo "uint32"
       var data = newSeq[ptr UncheckedArray[uint32]](nChannels)
