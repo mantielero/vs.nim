@@ -109,3 +109,13 @@ https://vapoursynth.com/doc/pythonreference.html#VideoNode.set_output
 
 # Blablabla
 ## VSMap
+
+# Links
+https://hackmd.io/@nibreon/vapoursynth-book/%2F%40nibreon%2Fvapoursynth-book
+https://forum.doom9.org/forumdisplay.php?f=82
+
+# Plusgins
+https://vsdb.top/
+
+## Transitions
+yay -S vapoursynth-plugin-vstransitions-git

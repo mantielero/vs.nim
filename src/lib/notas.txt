@@ -78,12 +78,6 @@ type
   Vspluginapi* = structvspluginapi ## Generated based on /usr/include/vapoursynth/VapourSynth4.h:328:3
   structvspluginapi* {.pure, inheritable, bycopy.} = object
     getapiversion*: proc (): cint {.cdecl.} ## Generated based on /usr/include/vapoursynth/VapourSynth4.h:324:16
-    configplugin*: proc (a0: cstring; a1: cstring; a2: cstring; a3: cint;
-                         a4: cint; a5: cint; a6: ptr Vsplugin): cint {.cdecl.}
-    registerfunction*: proc (a0: cstring; a1: cstring; a2: cstring;
-                             a3: Vspublicfunction; a4: pointer; a5: ptr Vsplugin): cint {.
-        cdecl.}
-
 
   Vsapi* = structvsapi       ## Generated based on /usr/include/vapoursynth/VapourSynth4.h:78:22
   structvsapi* {.pure, inheritable, bycopy.} = object

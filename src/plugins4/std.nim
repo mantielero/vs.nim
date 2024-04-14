@@ -886,7 +886,6 @@ proc loadPlugin*(path:string;
                  altsearchpath= none(int);
                  forcens= none(string);
                  forceid= none(string)):VSMapRef =
-
   let plug = getPluginById("com.vapoursynth.std")
   assert( plug.handle != nil, "plugin \"com.vapoursynth.std\" not installed properly in your computer") 
 

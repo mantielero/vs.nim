@@ -20,6 +20,9 @@ export info, helper
 import lib/node/libvsnode
 export libvsnode
 
+import lib/frame/libvsframe
+export libvsframe
+
 import plugins4/all_plugins
 export all_plugins
 
@@ -31,3 +34,6 @@ export output
 
 import lib/sugarized/[operations]
 export operations
+
+import wrapper/vapoursynth4
+export vapoursynth4
