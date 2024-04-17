@@ -14,6 +14,7 @@ tests/borrame.wav
 
 examples/*
 !examples/*.nim
+!examples/plugins
 
 media/*.ffindex
 media/*.y4m
