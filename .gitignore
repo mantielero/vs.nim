@@ -16,6 +16,11 @@ examples/*
 !examples/*.nim
 !examples/plugins
 
+examples/plugins/*
+!examples/plugins/*.nims
+!examples/plugins/*.nim
+!examples/plugins/*.md
+
 media/*.ffindex
 media/*.y4m
 tests/*.y4m
