@@ -31,7 +31,7 @@ This function initialize the plugin. It requires to use the pragmas `{.cdecl,exp
 
 Inside it will:
 1. Configure the plugin: `configPlugin`
-2. Register the function: `registerFunction`. One of the parameters of this function will be the function used to create a new function; in this case, `filterCreate`.
+2. Register the function: [registerFunction](https://vapoursynth.com/doc/api/vapoursynth4.h.html#registerfunction). One of the parameters of this function will be the function used to create a new function; in this case, `filterCreate`.
 
 #### filterCreate
 This is the function responsible for creating the filter. 
@@ -58,4 +58,34 @@ The interesing processing takes place after `getFrameFilter`. In this "filter sk
 ```
 
 > Notice that the only function required to be exported `{.exportc, dynlib.}` is VapourSynthPluginInit2.
+
+> IMPORTANT: don't forget to use `-d:release` in Nim for the final compilations in order to get faster code.
+
+## ex02.nim / ex02_test.nim
+The code can be simplified with the help of metaprogramming. For this we use templates that are defined in `libvsplugins.nim`.
+
+For example a "do-nothing" filter can be created as follows:
+```nim
+import vs
+
+# This is the name of the function that will be created and assigned to function "Filter"
+var filterCreate:FilterCreateTyp 
+
+# Creates the filter, memory management and gets frames
+# In the body, the frame processing
+createFilter("Filter", filterCreate, FilterDataObj):
+  let dstFrame = vsapi.copyFrame(srcFrame, core)  # we just copy source to destination (no processing)
+
+# Initialize the plugin
+# - register function "Filter" in the 
+initPlugin("com.example.filter", "filter", "VapourSynth Filter Skeleton", (1, 0), 0):
+  regFunction("Filter", "clip:vnode;", "clip:vnode;", filterCreate)
+```
+
+The created filter can be tested by compiling: `ex02_test.nim`.
+
+If we copy the `libex02.so` file into: `/usr/lib/vapoursynth`, the wrapping function in `ex02_test.nim` can be created for us with the execution `src/wrapper/plugin_generator.nim`:
+```nim
+nim c -r src/wrapper/plugin_generator.nim
+```
 

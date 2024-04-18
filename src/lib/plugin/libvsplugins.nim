@@ -267,3 +267,146 @@ proc createVideoFilter*(`out`: VSMapRef; name:string; vi: VSVideoInfoRef;
   api.handle.createVideoFilter(`out`.handle, name.cstring, vi.handle,
         getFrame, free, filterMode.cint,
         dependencies.unsafeAddr, numDeps.cint, instanceData, core.handle)
+
+
+# ----------------------------------------
+# Templates to make easier plugin creation
+# ----------------------------------------
+
+# Plugin initialization
+type
+  FilterCreateTyp* = proc ( inClip: ptr VSMap,     #const VSMap *in, 
+                      outClip: ptr VSMap,    #VSMap *out, 
+                      userData: pointer,  #void *userData, 
+                      core {.inject.}: ptr VSCore,    # VSCore *core, 
+                      vsapi {.inject.}: ptr VSApi ) {.cdecl.}
+
+template regFunction*(functionName, functionArgs, functionReturn:string;
+                     filterCreate:FilterCreateTyp):untyped {.dirty.} =
+  #echo functionName
+  ret = 0
+  ret = vsapi.registerFunction(
+                      functionName.cstring, 
+                      functionArgs.cstring, 
+                      functionReturn.cstring,
+                      filterCreate, 
+                      nil, # TODO: functionData: Pointer to user data that gets passed to argsFunc when creating a filter. Useful to register multiple filters using a single argsFunc function.
+                      vsplugin)
+
+  if ret == 0:
+    raise newException(ValueError, 
+                       "something failed while registering function: ")# & pluginId)
+
+proc makeVersion*(pluginVersion:tuple[major:int,minor:int]): int =
+  (pluginVersion.major shl 16) or pluginVersion.minor
+
+template initPlugin*(pluginId, pluginNamespace, pluginName:string;
+                    pluginVersion:tuple[major:int,minor:int]; 
+                    flags:int;
+                    body:untyped):untyped {.dirty.} =
+  proc VapourSynthPluginInit2*(vsplugin: ptr VSPlugin, 
+                               vsapi: ptr VSPluginApi) {.cdecl,exportc:"$1",dynlib.} =
+    var ret = vsapi.configplugin(
+                        pluginId.cstring, 
+                        pluginNamespace.cstring, 
+                        pluginName.cstring,
+                        makeVersion(pluginVersion).cint, 
+                        makeVersion((Vapoursynthapimajor, Vapoursynthapiminor)).cint, 
+                        flags.cint, 
+                        vsplugin )
+    if ret == 0:
+      raise newException(ValueError, "something failed while configuring plugin: " & pluginId)
+    
+    block:
+      body
+
+type
+  FilterDataObj* = object of RootObj # to enable inheritance
+    node*: ptr VSNode
+    vi*: ptr VSVideoInfo
+
+
+
+template createFilter*(filterName: string;
+                       filterFunctionName:FilterCreateTyp; 
+                       UserData:typedesc; 
+                       body: untyped):untyped =
+  ## creates: filterCreate, filterFree, filterGetFrame
+  proc filterGetFrame*( n:cint, 
+                        activationReason:cint, 
+                        instanceData: pointer,
+                        frameData: ptr pointer,
+                        frameCtx: ptr VSFrameContext, 
+                        core {.inject.}: ptr VSCore, 
+                        vsapi {.inject.}: ptr VSApi
+                        ): ptr VSFrame {.cdecl.} =
+    let d = cast[ptr UserData](instanceData)
+  
+    if activationReason.Vsactivationreason == arInitial:
+      vsapi.requestFrameFilter(n.cint, d.node, frameCtx)
+
+    elif activationReason.Vsactivationreason == arAllFramesReady:   
+      let srcFrame {.inject.} = vsapi.getFrameFilter(n.cint, d.node, frameCtx)
+      #let fi = vsapi.getVideoFrameFormat(srcFrame)
+      #let height = vsapi.getFrameHeight(srcFrame, 0)
+      #let width = vsapi.getFrameWidth(srcFrame, 0)      
+      #let dstFrame = vsapi.newVideoFrame(fi, width, height, srcFrame, core);
+      # TODO: could it be better to do a copyFrame?
+
+      # Crear frame
+      # With the following, srcFrame memory should be handle by Nim.
+      #let src {.inject.} = new VSMapRef
+      #src.handle = srcFrame
+      # your code here...
+      #filterBody(vsapi, core, srcFrame, body)
+      body
+      #let dstFrame = vsapi.copyFrame(srcFrame, core)
+      
+      vsapi.freeFrame(srcFrame)
+      return dstFrame
+    
+    return nil
+
+  proc filterFree*( instanceData:pointer, #void *instanceData, 
+                    core {.inject.}:ptr VSCore, #VSCore *core, 
+                    vsapi {.inject.}: ptr VSApi ) {.cdecl.} =  #const VSAPI *vsapi) =
+    var tmp = cast[ptr UserData](instanceData)
+    var data = cast[UserData](tmp)
+
+    vsapi.freeNode(data.node)
+    dealloc(instanceData)
+
+
+  #proc filterCreate*( inClip: ptr VSMap,     #const VSMap *in,
+  filterFunctionName = proc( inClip: ptr VSMap,     #const VSMap *in, 
+                      outClip: ptr VSMap,    #VSMap *out, 
+                      userData: pointer,  #void *userData, 
+                      core {.inject.}: ptr VSCore,    # VSCore *core, 
+                      vsapi {.inject.}: ptr VSApi ) {.cdecl.} =  # {.cdecl,exportc,dynlib.} = #const VSAPI *vsapi) =
+    var err = peUnset.cint
+    var perr = cast[ptr cint](unsafeAddr(err))   
+    let node = vsapi.mapGetNode(inClip, "clip".cstring, 0.cint, perr)
+
+    let vi = vsapi.getVideoInfo(node)
+
+    # Move data to the heap
+    var d = UserData(node: node, vi: vi)
+    var data1 = cast[ptr UserData]( alloc0(sizeof(d)) )
+    data1[] = d  
+
+    let deps = VSFilterDependency(source: d.node, 
+                                  requestpattern: rpGeneral.cint)
+    var data2 = cast[ptr VSFilterDependency]( alloc0(sizeof(deps)) )
+    data2[] = deps
+
+    vsapi.createVideoFilter(
+            outClip,           # ptr VSMap
+            filterName.cstring,  # cstring, 
+            d.vi,              # ptr VSVideoInfo
+            filterGetFrame,    # VSFilterGetFrame
+            filterFree,        # VSFilterFree
+            fmParallel.cint,   # cint
+            data2,             # ptr VSFilterDependency
+            1.cint,            # cint
+            data1,             # ptr FilterDataObj
+            core )             # ptr VSCore
