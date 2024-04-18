@@ -48,7 +48,7 @@ proc filterFree*( instanceData:pointer, #void *instanceData,
   var data = cast[FilterDataObj](tmp)
 
   vsapi.freeNode(data.node)
-
+  dealloc(instanceData)
 
 
 # No necesita ser exportada
